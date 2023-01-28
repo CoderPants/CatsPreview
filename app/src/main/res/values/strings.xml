@@ -1,3 +1,6 @@
 <resources>
 	<string name="app_name">Cats</string>
+
+	<!--Utils tag-->
+	<string name="single_tap_tag">single_tap_tag</string>
 </resources>

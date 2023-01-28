@@ -1,4 +1,4 @@
-package com.theoldone.catspreview.screens
+package com.theoldone.catspreview.activities
 
 import android.os.Bundle
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -8,7 +8,7 @@ import com.theoldone.catspreview.databinding.ActvityMainBinding
 class MainActivity : BindingActivity<ActvityMainBinding>(R.layout.actvity_main) {
 
 	override fun onCreate(inState: Bundle?) {
-		val splash = installSplashScreen()
+		installSplashScreen()
 		super.onCreate(inState)
 	}
 }

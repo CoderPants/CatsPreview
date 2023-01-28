@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:id="@+id/nav_cats"
+	app:startDestination="@+id/cats">
+
+	<fragment
+		android:id="@+id/cats"
+		android:name="com.theoldone.catspreview.fragments.CatsFragment"
+		android:label="CatsFragment"
+		tools:layout="@layout/fragment_cats">
+
+		<action
+			android:id="@+id/action_cats_to_favorite_cats"
+			app:destination="@id/cats_favorite"
+			app:enterAnim="@anim/fade_in"
+			app:exitAnim="@anim/fade_out"
+			app:popEnterAnim="@anim/fade_in"
+			app:popExitAnim="@anim/fade_out"/>
+	</fragment>
+
+	<fragment
+		android:id="@+id/cats_favorite"
+		android:name="com.theoldone.catspreview.fragments.FavoriteCatsFragment"
+		android:label="CatsFavoriteFragment"
+		tools:layout="@layout/fragment_favorite_cats"/>
+</navigation>
