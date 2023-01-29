@@ -1,7 +1,6 @@
 package com.theoldone.catspreview.di
 
 import android.app.Application
-import android.content.Context
 import com.theoldone.catspreview.utils.RecourseManager
 import dagger.Module
 import dagger.Provides

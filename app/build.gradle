@@ -17,6 +17,8 @@ android {
 		versionCode 1
 		versionName "1.0"
 		multiDexEnabled true
+		buildConfigField "String", "HOST", "\"https://api.thecatapi.com/\""
+		buildConfigField "String", "API_KEY", "\"live_lC5fa1LfhetWuGkZYXGiuDJnCCiGVpiU0KVyg1C06fPfJZe13rgQuQJexGAnKLFK\""
 
 		testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 	}
@@ -48,14 +50,17 @@ dependencies {
 	implementation 'androidx.recyclerview:recyclerview:1.2.1'
 	implementation 'androidx.core:core-splashscreen:1.0.0'
 	implementation 'androidx.multidex:multidex:2.0.1'
+	implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1"
 	implementation "androidx.navigation:navigation-fragment-ktx:$navigation_version"
 	implementation "androidx.navigation:navigation-ui-ktx:$navigation_version"
 	implementation "com.google.dagger:dagger:$dagger2_version"
 	implementation "com.google.dagger:dagger-android-support:$dagger2_version"
-	implementation"androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1"
+	implementation "com.squareup.retrofit2:retrofit:$retrofit_version"
+	implementation "com.squareup.retrofit2:converter-gson:$retrofit_version"
+	implementation "com.squareup.okhttp3:logging-interceptor:4.10.0"
 
 	kapt "com.google.dagger:dagger-compiler:$dagger2_version"
-	kapt  "com.google.dagger:dagger-android-processor:$dagger2_version"
+	kapt "com.google.dagger:dagger-android-processor:$dagger2_version"
 
 	testImplementation 'junit:junit:4.13.2'
 	androidTestImplementation 'androidx.test.ext:junit:1.1.5'
