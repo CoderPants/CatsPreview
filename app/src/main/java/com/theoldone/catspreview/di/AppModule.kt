@@ -1,5 +1,6 @@
 package com.theoldone.catspreview.di
 
+import android.app.Application
 import android.content.Context
 import com.theoldone.catspreview.utils.RecourseManager
 import dagger.Module
@@ -10,5 +11,5 @@ import javax.inject.Singleton
 class AppModule {
 	@Provides
 	@Singleton
-	fun provideRecourseManager(context: Context) = RecourseManager(context)
+	fun provideRecourseManager(application: Application) = RecourseManager(application)
 }

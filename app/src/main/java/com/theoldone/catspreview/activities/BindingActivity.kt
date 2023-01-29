@@ -4,8 +4,9 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
+import dagger.android.support.DaggerAppCompatActivity
 
-abstract class BindingActivity<T : ViewDataBinding>(private val layoutResId: Int) : AppCompatActivity() {
+abstract class BindingActivity<T : ViewDataBinding>(private val layoutResId: Int) : DaggerAppCompatActivity() {
 	protected lateinit var binding: T
 
 	override fun onCreate(inState: Bundle?) {

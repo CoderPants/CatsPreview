@@ -1,17 +1,8 @@
 package com.theoldone.catspreview
 
-import androidx.multidex.MultiDexApplication
-import com.theoldone.catspreview.di.AppComponent
 import com.theoldone.catspreview.di.DaggerAppComponent
+import dagger.android.support.DaggerApplication
 
-class CatsApplication : MultiDexApplication() {
-	lateinit var appComponent: AppComponent
-		private set
-
-	override fun onCreate() {
-		super.onCreate()
-		appComponent = DaggerAppComponent.builder()
-			.context(applicationContext)
-			.build()
-	}
+class CatsApplication : DaggerApplication() {
+	override fun applicationInjector() = DaggerAppComponent.builder().application(this).build()
 }
