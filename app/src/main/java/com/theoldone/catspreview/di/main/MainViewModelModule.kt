@@ -15,9 +15,4 @@ interface MainViewModelModule {
     @IntoMap
     @ViewModelKey(MainViewModel::class)
     fun bindMainViewModel(mainViewModel: MainViewModel) : ViewModel
-
-    @Binds
-    @IntoMap
-    @ViewModelKey(CatsViewModel::class)
-    fun bindCatsViewModel(profileViewModel: CatsViewModel) : ViewModel
 }
