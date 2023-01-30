@@ -9,4 +9,14 @@
 	<color name="lemon_chiffon">#FFF3CD</color>
 	<color name="white">#FFFFFF</color>
 	<color name="black">#000000</color>
+
+	<color name="bright_gray">#EFEDE8</color>
+	<color name="palatinate_blue">#1A30D6</color>
+	<color name="manatee">#9AA1AE</color>
+	<color name="wild_blue_yonder">#A2ADDB</color>
+	<color name="metallic_pink">#EAA8C1</color>
+	<color name="han_blue">#4D5FCB</color>
+	<color name="arsenic_2">#3B3B4A</color>
+	<color name="opera_mauve">#A779A6</color>
+	<color name="razzmatazz">#EF2C61</color>
 </resources>

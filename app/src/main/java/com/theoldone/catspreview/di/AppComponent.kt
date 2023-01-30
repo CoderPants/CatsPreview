@@ -1,7 +1,7 @@
 package com.theoldone.catspreview.di
 
 import android.app.Application
-import com.theoldone.catspreview.CatsApplication
+import com.theoldone.catspreview.ui.CatsApplication
 import com.theoldone.catspreview.di.qualifiers.ApiKey
 import com.theoldone.catspreview.di.qualifiers.Host
 import dagger.BindsInstance

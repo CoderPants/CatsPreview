@@ -1,7 +1,7 @@
 package com.theoldone.catspreview.di
 
 import androidx.lifecycle.ViewModelProvider
-import com.theoldone.catspreview.viewmodels.ViewModelProviderFactory
+import com.theoldone.catspreview.vm.VMProviderFactory
 import dagger.Binds
 import dagger.Module
 
@@ -9,5 +9,5 @@ import dagger.Module
 interface ViewModelFactoryModule {
 
     @Binds
-    fun bindViewModelFactory(factory: ViewModelProviderFactory): ViewModelProvider.Factory
+    fun bindViewModelFactory(factory: VMProviderFactory): ViewModelProvider.Factory
 }

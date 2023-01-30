@@ -2,7 +2,7 @@ package com.theoldone.catspreview.di.main.cats
 
 import androidx.lifecycle.ViewModel
 import com.theoldone.catspreview.di.ViewModelKey
-import com.theoldone.catspreview.viewmodels.CatsViewModel
+import com.theoldone.catspreview.vm.CatsVM
 import dagger.Binds
 import dagger.Module
 import dagger.multibindings.IntoMap
@@ -11,6 +11,6 @@ import dagger.multibindings.IntoMap
 interface CatsViewModelModule {
 	@Binds
 	@IntoMap
-	@ViewModelKey(CatsViewModel::class)
-	fun bindCatsViewModel(profileViewModel: CatsViewModel): ViewModel
+	@ViewModelKey(CatsVM::class)
+	fun bindCatsViewModel(profileViewModel: CatsVM): ViewModel
 }

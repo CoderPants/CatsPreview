@@ -1,4 +1,4 @@
-package com.theoldone.catspreview.activities
+package com.theoldone.catspreview.ui.activities
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity

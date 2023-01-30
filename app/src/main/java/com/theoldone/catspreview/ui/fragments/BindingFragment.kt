@@ -1,4 +1,4 @@
-package com.theoldone.catspreview.fragments
+package com.theoldone.catspreview.ui.fragments
 
 import android.os.Bundle
 import android.view.LayoutInflater

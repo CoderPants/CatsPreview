@@ -2,8 +2,7 @@ package com.theoldone.catspreview.di.main
 
 import androidx.lifecycle.ViewModel
 import com.theoldone.catspreview.di.ViewModelKey
-import com.theoldone.catspreview.viewmodels.CatsViewModel
-import com.theoldone.catspreview.viewmodels.MainViewModel
+import com.theoldone.catspreview.vm.MainVM
 import dagger.Binds
 import dagger.Module
 import dagger.multibindings.IntoMap
@@ -13,6 +12,6 @@ interface MainViewModelModule {
 
     @Binds
     @IntoMap
-    @ViewModelKey(MainViewModel::class)
-    fun bindMainViewModel(mainViewModel: MainViewModel) : ViewModel
+    @ViewModelKey(MainVM::class)
+    fun bindMainViewModel(mainVM: MainVM) : ViewModel
 }

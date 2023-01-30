@@ -1,6 +1,13 @@
 <resources>
 	<string name="app_name">Cats</string>
 
+	<!--MainActivity-->
+	<string name="cats">Cats</string>
+	<string name="favorites">Favorites</string>
+	<string name="choose_cat">Choose your Cat!</string>
+	<string name="breeds">Breeds</string>
+
 	<!--Utils tag-->
 	<string name="single_tap_tag">single_tap_tag</string>
+	<string name="single_group_tag">single_group_tag</string>
 </resources>

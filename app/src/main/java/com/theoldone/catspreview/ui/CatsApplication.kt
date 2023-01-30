@@ -1,5 +1,6 @@
-package com.theoldone.catspreview
+package com.theoldone.catspreview.ui
 
+import com.theoldone.catspreview.BuildConfig
 import com.theoldone.catspreview.di.DaggerAppComponent
 import dagger.android.support.DaggerApplication
 

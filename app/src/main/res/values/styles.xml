@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+	<style name="TabsStyle" parent="Widget.AppCompat.TextView">
+		<item name="android:gravity">center</item>
+		<item name="android:paddingTop">15dp</item>
+		<item name="android:paddingBottom">35dp</item>
+		<item name="android:textColor">@color/white</item>
+		<item name="fontFamily">@font/nunito_semibold</item>
+		<item name="textAllCaps">true</item>
+		<item name="android:textSize">14sp</item>
+		<item name="android:background">@drawable/tab_background</item>
+	</style>
+
+	<style name="TextStyle" parent="Widget.AppCompat.TextView">
+		<item name="android:textColor">@color/manatee</item>
+		<item name="fontFamily">@font/nunito_semibold</item>
+		<item name="android:textSize">14sp</item>
+	</style>
+
+	<style name="RoundedImage">
+		<item name="cornerSize">@dimen/radius</item>
+		<item name="cornerFamily">rounded</item>
+	</style>
+</resources>
