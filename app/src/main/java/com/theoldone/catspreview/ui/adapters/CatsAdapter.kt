@@ -2,18 +2,44 @@ package com.theoldone.catspreview.ui.adapters
 
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
+import com.theoldone.catspreview.ui.adapters.holders.BaseHolder
+import com.theoldone.catspreview.ui.adapters.holders.BottomProgressHolder
 import com.theoldone.catspreview.ui.adapters.holders.CatHolder
+import com.theoldone.catspreview.ui.viewmodels.BottomProgressViewModel
+import com.theoldone.catspreview.ui.viewmodels.CatType
 import com.theoldone.catspreview.ui.viewmodels.CatViewModel
 
-class CatsAdapter : BaseListAdapter<CatViewModel>(diffCallback) {
+class CatsAdapter(private val loadNextPage: (() -> Unit)? = null) : BaseListAdapter<CatType>(diffCallback) {
 
-	override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = CatHolder(parent)
+	override fun onViewAttachedToWindow(holder: BaseHolder) {
+		super.onViewAttachedToWindow(holder)
+		if (holder.bindingAdapterPosition == itemCount - 1)
+			loadNextPage?.invoke()
+	}
+
+	override fun getItemViewType(position: Int) = when (currentList[position]) {
+		is BottomProgressViewModel -> PROGRESS_TYPE
+		is CatViewModel -> CAT_TYPE
+	}
+
+	override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = when (viewType) {
+		CAT_TYPE -> CatHolder(parent)
+		PROGRESS_TYPE -> BottomProgressHolder(parent)
+		else -> throw IllegalArgumentException("There is no such view type! Type: $viewType")
+	}
+
+	fun addBottomProgress() {
+		submitList(ArrayList(currentList).apply { add(BottomProgressViewModel()) })
+	}
 
 	companion object {
-		val diffCallback = object : DiffUtil.ItemCallback<CatViewModel>() {
-			override fun areItemsTheSame(oldItem: CatViewModel, newItem: CatViewModel) = oldItem.id == newItem.id
+		private const val PROGRESS_TYPE = 0
+		private const val CAT_TYPE = 1
 
-			override fun areContentsTheSame(oldItem: CatViewModel, newItem: CatViewModel) = oldItem == newItem
+		val diffCallback = object : DiffUtil.ItemCallback<CatType>() {
+			override fun areItemsTheSame(oldItem: CatType, newItem: CatType) = oldItem.id == newItem.id
+
+			override fun areContentsTheSame(oldItem: CatType, newItem: CatType) = oldItem == newItem
 		}
 	}
 }

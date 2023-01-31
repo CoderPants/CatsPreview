@@ -2,7 +2,6 @@ package com.theoldone.catspreview.ui.fragments
 
 import android.animation.ValueAnimator
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import androidx.core.animation.doOnEnd
 import androidx.lifecycle.Lifecycle
@@ -11,7 +10,10 @@ import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import com.theoldone.catspreview.R
 import com.theoldone.catspreview.databinding.FragmentCatsBinding
-import com.theoldone.catspreview.screenstates.*
+import com.theoldone.catspreview.screenstates.DismissProgress
+import com.theoldone.catspreview.screenstates.Init
+import com.theoldone.catspreview.screenstates.ShowBottomProgress
+import com.theoldone.catspreview.screenstates.ShowProgress
 import com.theoldone.catspreview.ui.adapters.CatsAdapter
 import com.theoldone.catspreview.ui.decorations.MarginDecoration
 import com.theoldone.catspreview.utils.dp
@@ -25,7 +27,7 @@ class CatsFragment : BindingFragment<FragmentCatsBinding>(R.layout.fragment_cats
 	@Inject
 	lateinit var viewModelProviderFactory: ViewModelProvider.Factory
 	lateinit var viewModel: CatsVM
-	private val adapter by lazy { CatsAdapter() }
+	private val adapter by lazy { CatsAdapter(viewModel::loadNextPage) }
 	private var progressFadeAnimator: ValueAnimator? = null
 
 	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -33,7 +35,7 @@ class CatsFragment : BindingFragment<FragmentCatsBinding>(R.layout.fragment_cats
 		//creating like this, because i need to trigger init in viewModel
 		viewModel = viewModelProviderFactory.create(CatsVM::class.java)
 		binding.rvCats.adapter = adapter
-		binding.rvCats.addItemDecoration(MarginDecoration(middleIndentPx = 10.dp, endIndentPx = 20.dp))
+		binding.rvCats.addItemDecoration(MarginDecoration(middleIndentPx = 10.dp))
 		//binding.btnNext.setOnSingleTap { findNavController().navigate(CatsFragmentDirections.actionCatsToFavoriteCats()) }
 		observeUiState()
 	}
@@ -43,13 +45,12 @@ class CatsFragment : BindingFragment<FragmentCatsBinding>(R.layout.fragment_cats
 			viewModel.uiState
 				.flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
 				.collect { state ->
-					Log.v("MYTAG", "state: $state")
+					//Log.v("MYTAG", "state: $state")
 					when (state) {
 						is Init -> adapter.submitList(state.cats)
 						ShowProgress -> binding.progress.show()
 						DismissProgress -> hideProgress()
-						DismissPageProgress -> Unit//TODO()
-						ShowPageProgress -> Unit//TODO()
+						ShowBottomProgress -> adapter.addBottomProgress()
 					}
 				}
 		}
