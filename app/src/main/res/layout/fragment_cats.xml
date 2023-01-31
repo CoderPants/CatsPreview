@@ -14,11 +14,11 @@
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:layout_marginHorizontal="11dp"
-			android:padding="5dp"
 			android:layout_marginTop="19dp"
 			android:background="?attr/selectableItemBackground"
 			android:drawableEnd="@drawable/ic_arrow_down"
 			android:gravity="center"
+			android:padding="5dp"
 			android:text="@string/breeds"
 			android:textSize="17sp"
 			app:fontFamily="@font/nunito_bold"
@@ -37,5 +37,32 @@
 			app:layout_constraintBottom_toBottomOf="parent"
 			app:layout_constraintTop_toBottomOf="@+id/btn_breeds"
 			tools:listitem="@layout/holder_cat"/>
+
+		<View
+			android:id="@+id/progress_background"
+			android:layout_width="0dp"
+			android:layout_height="0dp"
+			android:background="@color/bright_gray"
+			app:layout_constraintBottom_toBottomOf="@+id/rv_cats"
+			app:layout_constraintEnd_toEndOf="@+id/rv_cats"
+			app:layout_constraintStart_toStartOf="@+id/rv_cats"
+			app:layout_constraintTop_toTopOf="@+id/rv_cats"
+			tools:visibility="gone"/>
+
+		<com.google.android.material.progressindicator.CircularProgressIndicator
+			android:id="@+id/progress"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:contentDescription="@string/breeds"
+			android:indeterminate="true"
+			app:hideAnimationBehavior="inward"
+			app:indicatorColor="@color/bright_gray"
+			app:layout_constraintBottom_toBottomOf="@+id/rv_cats"
+			app:layout_constraintEnd_toEndOf="@+id/rv_cats"
+			app:layout_constraintStart_toStartOf="@+id/rv_cats"
+			app:layout_constraintTop_toTopOf="@+id/rv_cats"
+			app:showAnimationBehavior="outward"
+			app:trackColor="@color/wild_blue_yonder"
+			tools:visibility="gone"/>
 	</androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

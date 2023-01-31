@@ -17,9 +17,4 @@
 		<item name="fontFamily">@font/nunito_semibold</item>
 		<item name="android:textSize">14sp</item>
 	</style>
-
-	<style name="RoundedImage">
-		<item name="cornerSize">@dimen/radius</item>
-		<item name="cornerFamily">rounded</item>
-	</style>
 </resources>

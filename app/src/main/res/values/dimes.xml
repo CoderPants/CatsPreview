@@ -2,4 +2,5 @@
 <resources>
 	<dimen name="margin_horizontal">16dp</dimen>
 	<dimen name="radius">20dp</dimen>
+	<dimen name="cat_image_height">192dp</dimen>
 </resources>

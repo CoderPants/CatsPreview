@@ -1,10 +1,10 @@
 package com.theoldone.catspreview.ui.adapters.holders
 
 import android.view.ViewGroup
+import com.bumptech.glide.GenericTransitionOptions
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestOptions
 import com.theoldone.catspreview.R
 import com.theoldone.catspreview.databinding.HolderCatBinding
@@ -29,7 +29,7 @@ class CatHolder(parent: ViewGroup) : BindingHolder<HolderCatBinding>(parent, R.l
 
 	private fun updateAll(item: Any) {
 		val viewModel = item as CatViewModel
-		if (binding.ivCat.width == 0)
+		if (binding.ivCat.width == 0 && binding.ivCat.height == 0)
 			binding.ivCat.post { initImage(viewModel.url) }
 		else
 			initImage(viewModel.url)
@@ -38,14 +38,15 @@ class CatHolder(parent: ViewGroup) : BindingHolder<HolderCatBinding>(parent, R.l
 	private fun initImage(url: String) {
 		val options = RequestOptions()
 			.transform(RoundedCorners(20))
+			.placeholder(R.drawable.image_place_holder)
+			.diskCacheStrategy(DiskCacheStrategy.ALL)
 			.override(binding.ivCat.width, binding.ivCat.height)
 		Glide
 			.with(itemView.context)
 			.load(url)
 			.apply(options)
-			.transition(DrawableTransitionOptions.withCrossFade(2000))
-			.placeholder(R.drawable.image_place_holder)
-			.diskCacheStrategy(DiskCacheStrategy.DATA)
-			.into(binding.ivCat);
+			//because cross fade has a bug
+			.transition(GenericTransitionOptions.with(R.anim.fade_in_long))
+			.into(binding.ivCat)
 	}
 }
