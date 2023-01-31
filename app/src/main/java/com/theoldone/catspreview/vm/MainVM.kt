@@ -1,12 +1,28 @@
 package com.theoldone.catspreview.vm
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
-import com.theoldone.catspreview.utils.RecourseManager
+import androidx.lifecycle.viewModelScope
+import com.theoldone.catspreview.db.FavoriteCatsDao
+import com.theoldone.catspreview.ui.screenstates.MainScreenState
+import com.theoldone.catspreview.ui.screenstates.UpdateFavorites
+import com.theoldone.catspreview.utils.launchMain
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 
-class MainVM @Inject constructor(private val recourseManager: RecourseManager) : ViewModel() {
+class MainVM @Inject constructor(favoriteCatsDao: FavoriteCatsDao) : ViewModel() {
+	private val _uiState = MutableStateFlow<MainScreenState?>(null)
+	val uiState = _uiState.asSharedFlow()
+
 	init {
-		Log.v("MYTAG", "MainViewModel: $recourseManager")
+		observeFavorite(favoriteCatsDao)
+	}
+
+	private fun observeFavorite(favoriteCatsDao: FavoriteCatsDao) = viewModelScope.launchMain {
+		favoriteCatsDao.favoriteCats().flowOn(Dispatchers.IO).collect { cats ->
+			_uiState.emit(UpdateFavorites(cats.map { it.id }))
+		}
 	}
 }

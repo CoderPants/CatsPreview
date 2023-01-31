@@ -1,5 +1,6 @@
 package com.theoldone.catspreview.ui.adapters
 
+import android.graphics.drawable.Drawable
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import com.theoldone.catspreview.ui.adapters.holders.BaseHolder
@@ -8,8 +9,13 @@ import com.theoldone.catspreview.ui.adapters.holders.CatHolder
 import com.theoldone.catspreview.ui.viewmodels.BottomProgressViewModel
 import com.theoldone.catspreview.ui.viewmodels.CatType
 import com.theoldone.catspreview.ui.viewmodels.CatViewModel
+import com.theoldone.catspreview.utils.Payloads
 
-class CatsAdapter(private val loadNextPage: (() -> Unit)? = null) : BaseListAdapter<CatType>(diffCallback) {
+class CatsAdapter(
+	private val loadNextPage: (() -> Unit)? = null,
+	private val onFavoriteClicked: (catId: String) -> Unit,
+	private val onDownloadClicked: (CatViewModel, Drawable) -> Unit,
+) : BaseListAdapter<CatType>(diffCallback) {
 
 	override fun onViewAttachedToWindow(holder: BaseHolder) {
 		super.onViewAttachedToWindow(holder)
@@ -23,7 +29,7 @@ class CatsAdapter(private val loadNextPage: (() -> Unit)? = null) : BaseListAdap
 	}
 
 	override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = when (viewType) {
-		CAT_TYPE -> CatHolder(parent)
+		CAT_TYPE -> CatHolder(parent, onFavoriteClicked, onDownloadClicked)
 		PROGRESS_TYPE -> BottomProgressHolder(parent)
 		else -> throw IllegalArgumentException("There is no such view type! Type: $viewType")
 	}
@@ -40,6 +46,11 @@ class CatsAdapter(private val loadNextPage: (() -> Unit)? = null) : BaseListAdap
 			override fun areItemsTheSame(oldItem: CatType, newItem: CatType) = oldItem.id == newItem.id
 
 			override fun areContentsTheSame(oldItem: CatType, newItem: CatType) = oldItem == newItem
+
+			override fun getChangePayload(oldItem: CatType, newItem: CatType) = if (oldItem is CatViewModel && newItem is CatViewModel && oldItem.isFavorite != newItem.isFavorite)
+				Payloads.FAVORITE
+			else
+				null
 		}
 	}
 }

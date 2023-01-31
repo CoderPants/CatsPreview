@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:app="http://schemas.android.com/apk/res-auto">
+<layout xmlns:app="http://schemas.android.com/apk/res-auto"
+	xmlns:bind="http://schemas.android.com/tools">
+
+	<data>
+		<variable
+			name="viewModel"
+			type="com.theoldone.catspreview.ui.viewmodels.CatViewModel"/>
+	</data>
 
 	<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
 		xmlns:tools="http://schemas.android.com/tools"
@@ -23,6 +30,8 @@
 				android:layout_gravity="center"
 				android:layout_margin="16dp"
 				android:layout_marginHorizontal="@dimen/margin_horizontal"
+				bind:url="@{viewModel.url}"
+				bind:restrictSize="@{true}"
 				app:layout_constraintTop_toTopOf="parent"
 				app:srcCompat="@drawable/image_place_holder"/>
 		</FrameLayout>
@@ -63,6 +72,7 @@
 			android:layout_height="wrap_content"
 			android:background="@drawable/ripple_oval"
 			android:padding="12dp"
+			bind:tintColor="@{viewModel.favoriteColor}"
 			app:layout_constraintBottom_toBottomOf="@+id/favorite_btn_bg"
 			app:layout_constraintEnd_toEndOf="@+id/favorite_btn_bg"
 			app:layout_constraintStart_toStartOf="@+id/favorite_btn_bg"

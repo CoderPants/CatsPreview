@@ -6,15 +6,20 @@ import android.animation.ValueAnimator
 import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.View
-import androidx.activity.viewModels
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.animation.doOnEnd
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.ViewCompat
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.flowWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import com.theoldone.catspreview.R
 import com.theoldone.catspreview.databinding.ActvityMainBinding
+import com.theoldone.catspreview.ui.fragments.FavoritesController
+import com.theoldone.catspreview.ui.screenstates.UpdateFavorites
 import com.theoldone.catspreview.utils.RecourseManager
+import com.theoldone.catspreview.utils.launchMain
 import com.theoldone.catspreview.utils.setOnGroupSingleTap
 import com.theoldone.catspreview.vm.MainVM
 import javax.inject.Inject
@@ -26,21 +31,39 @@ class MainActivity : BindingActivity<ActvityMainBinding>(R.layout.actvity_main) 
 
 	@Inject
 	lateinit var recourseManager: RecourseManager
-	private val viewModel: MainVM by viewModels { viewModelProviderFactory }
+	lateinit var viewModel: MainVM
 	private val activeColor by lazy { recourseManager.color(R.color.metallic_pink) }
 	private val inactiveColor by lazy { recourseManager.color(R.color.han_blue) }
 	private val activeTextColor by lazy { recourseManager.color(R.color.razzmatazz) }
 	private val inactiveTextColor by lazy { recourseManager.color(R.color.white) }
 	private val activeTextFont by lazy { recourseManager.font(R.font.nunito_black) }
 	private val inactiveTextFont by lazy { recourseManager.font(R.font.nunito_semibold) }
+	private val favoritesController: FavoritesController?
+		get() = supportFragmentManager.findFragmentById(R.id.nav_host_fragment)
+			?.childFragmentManager
+			?.fragments
+			?.firstOrNull() as? FavoritesController
 	private val colorEvaluator = ArgbEvaluator()
 	private var animationSet = AnimatorSet()
 
 	override fun onCreate(inState: Bundle?) {
 		installSplashScreen()
 		super.onCreate(inState)
+		viewModel = viewModelProviderFactory.create(MainVM::class.java)
 		binding.btnCats.setOnGroupSingleTap(ANIM_DURATION, this::changeFragment)
 		binding.btnFavorites.setOnGroupSingleTap(ANIM_DURATION, this::changeFragment)
+		observeUiState()
+	}
+
+	private fun observeUiState() {
+		lifecycleScope.launchMain {
+			viewModel.uiState
+				.flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+				.collect { state ->
+					if (state is UpdateFavorites)
+						favoritesController?.updateFavorites(state.favoritesCatIds)
+				}
+		}
 	}
 
 	private fun changeFragment(view: View) {

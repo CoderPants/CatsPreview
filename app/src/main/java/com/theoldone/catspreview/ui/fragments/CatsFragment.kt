@@ -10,24 +10,23 @@ import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import com.theoldone.catspreview.R
 import com.theoldone.catspreview.databinding.FragmentCatsBinding
-import com.theoldone.catspreview.screenstates.DismissProgress
-import com.theoldone.catspreview.screenstates.Init
-import com.theoldone.catspreview.screenstates.ShowBottomProgress
-import com.theoldone.catspreview.screenstates.ShowProgress
 import com.theoldone.catspreview.ui.adapters.CatsAdapter
 import com.theoldone.catspreview.ui.decorations.MarginDecoration
+import com.theoldone.catspreview.ui.screenstates.DismissProgress
+import com.theoldone.catspreview.ui.screenstates.InitCats
+import com.theoldone.catspreview.ui.screenstates.ShowBottomProgress
+import com.theoldone.catspreview.ui.screenstates.ShowProgress
 import com.theoldone.catspreview.utils.dp
+import com.theoldone.catspreview.utils.launchMain
 import com.theoldone.catspreview.vm.CatsVM
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-class CatsFragment : BindingFragment<FragmentCatsBinding>(R.layout.fragment_cats) {
+class CatsFragment : BindingFragment<FragmentCatsBinding>(R.layout.fragment_cats), FavoritesController {
 
 	@Inject
 	lateinit var viewModelProviderFactory: ViewModelProvider.Factory
 	lateinit var viewModel: CatsVM
-	private val adapter by lazy { CatsAdapter(viewModel::loadNextPage) }
+	private val adapter by lazy { CatsAdapter(viewModel::loadNextPage, viewModel::onFavoriteClicked, viewModel::onDownloadClicked) }
 	private var progressFadeAnimator: ValueAnimator? = null
 
 	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -40,14 +39,17 @@ class CatsFragment : BindingFragment<FragmentCatsBinding>(R.layout.fragment_cats
 		observeUiState()
 	}
 
+	override fun updateFavorites(favoritesCatIds: List<String>) {
+		viewModel.updateFavorites(favoritesCatIds)
+	}
+
 	private fun observeUiState() {
-		lifecycleScope.launch(Dispatchers.Main) {
+		lifecycleScope.launchMain {
 			viewModel.uiState
 				.flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
 				.collect { state ->
-					//Log.v("MYTAG", "state: $state")
 					when (state) {
-						is Init -> adapter.submitList(state.cats)
+						is InitCats -> adapter.submitList(state.cats)
 						ShowProgress -> binding.progress.show()
 						DismissProgress -> hideProgress()
 						ShowBottomProgress -> adapter.addBottomProgress()

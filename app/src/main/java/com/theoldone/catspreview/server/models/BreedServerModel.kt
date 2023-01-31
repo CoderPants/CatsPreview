@@ -1,18 +1,9 @@
 package com.theoldone.catspreview.server.models
 
 import com.google.gson.annotations.SerializedName
+import com.theoldone.catspreview.db.models.BreedDBModel
 
-data class CatModel(
-	val id: String = "",
-	val url: String = "",
-	@SerializedName("width")
-	val imageWidth: Int = 0,
-	@SerializedName("height")
-	val imageHeight: Int = 0,
-	val breeds: List<Breed>
-)
-
-data class Breed(
+data class BreedServerModel(
 	val id: String,
 	val temperament: String,
 	val origin: String,
@@ -21,3 +12,5 @@ data class Breed(
 	@SerializedName("wikipedia_url")
 	val wikipediaUrl: String
 )
+
+fun BreedServerModel.toDBModel() = BreedDBModel(id, temperament, origin, country_code, life_span, wikipediaUrl)

@@ -3,9 +3,16 @@ package com.theoldone.catspreview.utils
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.res.Resources
+import android.graphics.drawable.Drawable
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.graphics.drawable.DrawableCompat
 import com.theoldone.catspreview.R
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+
+fun CoroutineScope.launchMain(block: suspend CoroutineScope.() -> Unit) = launch(Dispatchers.Main, block = block)
 
 fun View.setOnSingleTap(delay: Long = 200L, block: (v: View) -> Unit) {
 	setOnClickListener {
@@ -37,6 +44,12 @@ fun Context.asActivity(): AppCompatActivity? {
 		curWrapper = curWrapper.baseContext
 	}
 	return null
+}
+
+//Sometimes drawable setTint doesn't work
+fun Drawable.setTintFixed(color: Int) {
+	val wrapped = DrawableCompat.wrap(this).mutate()
+	DrawableCompat.setTint(wrapped, color)
 }
 
 val Int.dp get() = (this * Resources.getSystem().displayMetrics.density).toInt()
