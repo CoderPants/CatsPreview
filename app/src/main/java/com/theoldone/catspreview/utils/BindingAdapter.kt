@@ -20,7 +20,6 @@ fun setImage(view: AppCompatImageView, url: String?, restrictSize: Boolean?) {
 			.transform(RoundedCorners(20))
 			.placeholder(R.drawable.image_place_holder)
 			.diskCacheStrategy(DiskCacheStrategy.ALL)
-
 		if (restrictSize == true)
 			options = options.override(view.width, view.height)
 		Glide
