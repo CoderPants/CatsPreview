@@ -2,5 +2,7 @@
 <resources>
 	<dimen name="margin_horizontal">16dp</dimen>
 	<dimen name="radius">20dp</dimen>
-	<dimen name="cat_image_height">192dp</dimen>
+	<dimen name="image_size">192dp</dimen>
+
+	<integer name="fade_anim_length">400</integer>
 </resources>

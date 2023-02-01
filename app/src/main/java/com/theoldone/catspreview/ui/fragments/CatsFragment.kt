@@ -14,6 +14,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.theoldone.catspreview.R
 import com.theoldone.catspreview.databinding.FragmentCatsBinding
+import com.theoldone.catspreview.db.models.CatDBModel
 import com.theoldone.catspreview.ui.adapters.CatsAdapter
 import com.theoldone.catspreview.ui.decorations.MarginDecoration
 import com.theoldone.catspreview.ui.screenstates.InitCats
@@ -26,12 +27,12 @@ import com.theoldone.catspreview.utils.setOnSingleTap
 import com.theoldone.catspreview.vm.CatsVM
 import javax.inject.Inject
 
-class CatsFragment : BindingFragment<FragmentCatsBinding>(R.layout.fragment_cats), FavoritesController {
+class CatsFragment : BindingFragment<FragmentCatsBinding>(R.layout.fragment_cats), FavoritesConsumer {
 
 	@Inject
 	lateinit var viewModelProviderFactory: ViewModelProvider.Factory
 	lateinit var viewModel: CatsVM
-	private val adapter by lazy { CatsAdapter(viewModel::loadNextPage, viewModel::onFavoriteClicked, viewModel::onDownloadClicked) }
+	private val adapter by lazy { CatsAdapter(viewModel::onFavoriteClicked, viewModel::onDownloadClicked, viewModel::loadNextPage) }
 	private var progressFadeAnimator: ValueAnimator? = null
 
 	override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,10 +47,11 @@ class CatsFragment : BindingFragment<FragmentCatsBinding>(R.layout.fragment_cats
 		binding.rvCats.adapter = adapter
 		binding.rvCats.addItemDecoration(MarginDecoration(middleIndentPx = 10.dp))
 		binding.btnFavorites.setOnSingleTap { findNavController().navigate(CatsFragmentDirections.actionCatsToFavoriteCats()) }
+		updateFavorites((activity as? FavoritesProvider)?.favorites ?: emptyList())
 	}
 
-	override fun updateFavorites(favoritesCatIds: List<String>) {
-		viewModel.updateFavorites(favoritesCatIds)
+	override fun updateFavorites(favoriteCats: List<CatDBModel>) {
+		viewModel.updateFavorites(favoriteCats.map { it.id })
 	}
 
 	private fun observeUiState() {
@@ -58,7 +60,11 @@ class CatsFragment : BindingFragment<FragmentCatsBinding>(R.layout.fragment_cats
 				.flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
 				.collect { state ->
 					when (state) {
-						is InitCats -> adapter.submitList(state.cats)
+						is InitCats -> {
+							adapter.submitList(state.cats)
+							binding.ivEmpty.visibility = if (state.cats.isEmpty()) VISIBLE else GONE
+							binding.tvEmpty.visibility = if (state.cats.isEmpty()) VISIBLE else GONE
+						}
 						is UpdateFavoriteText -> binding.tvFavoritesAmount.text = state.favoritesText
 						is UpdateProgress -> updateProgress(state.showProgress)
 						ShowBottomProgress -> adapter.addBottomProgress()

@@ -27,9 +27,9 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class CatsVM @Inject constructor(private val catsApi: CatsApi, private val favoriteCatsDao: FavoriteCatsDao, private var recourseManager: RecourseManager) : ViewModel() {
-	private val initFlow = MutableSharedFlow<InitCats>(1, 0, BufferOverflow.DROP_OLDEST)
-	private val updateFavoritesFlow = MutableSharedFlow<UpdateFavoriteText>(1, 0, BufferOverflow.DROP_OLDEST)
-	private val progressFlow = MutableSharedFlow<UpdateProgress>(1, 0, BufferOverflow.DROP_OLDEST)
+	private val initFlow = MutableSharedFlow<InitCats>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+	private val updateFavoritesFlow = MutableSharedFlow<UpdateFavoriteText>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+	private val progressFlow = MutableSharedFlow<UpdateProgress>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 	private val showBottomProgressFlow = MutableSharedFlow<ShowBottomProgress>()
 	val uiState by lazy { merge(initFlow, updateFavoritesFlow, progressFlow.asOneExecutionStrategy(), showBottomProgressFlow) }
 	private val catViewModels = mutableListOf<CatViewModel>()

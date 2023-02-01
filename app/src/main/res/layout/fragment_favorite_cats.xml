@@ -1,18 +1,100 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto">
 
-	<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:tools="http://schemas.android.com/tools"
 		android:layout_width="match_parent"
 		android:layout_height="match_parent"
+		android:background="@color/han_blue"
 		android:fitsSystemWindows="true">
 
-		<androidx.appcompat.widget.AppCompatTextView
-			android:id="@+id/btn_next"
+		<com.google.android.material.appbar.AppBarLayout
+			android:id="@+id/appbar"
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
-			android:gravity="center"
-			android:layout_gravity="center"
-			android:text="Cats Fragment Favorite"/>
+			android:background="@color/han_blue"
+			app:elevation="0dp">
 
+			<com.google.android.material.appbar.MaterialToolbar
+				android:id="@+id/toolbar"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				app:navigationIcon="@drawable/ic_arrow_back"
+				app:title="@string/favorites"
+				app:titleTextAppearance="@style/ToolbarTextStyle"/>
+		</com.google.android.material.appbar.AppBarLayout>
+
+		<androidx.constraintlayout.widget.ConstraintLayout
+			android:layout_width="match_parent"
+			android:layout_height="match_parent"
+			app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior">
+
+			<androidx.constraintlayout.widget.ConstraintLayout
+				android:layout_width="match_parent"
+				android:layout_height="match_parent"
+				android:background="@drawable/tab_background"
+				android:backgroundTint="@color/bright_gray">
+
+				<androidx.appcompat.widget.AppCompatTextView
+					android:id="@+id/btn_breeds"
+					style="@style/TextStyle"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_marginHorizontal="11dp"
+					android:layout_marginTop="19dp"
+					android:background="?attr/selectableItemBackground"
+					android:drawableEnd="@drawable/ic_arrow_down"
+					android:gravity="center"
+					android:padding="5dp"
+					android:text="@string/breeds"
+					android:textSize="17sp"
+					android:visibility="gone"
+					app:fontFamily="@font/nunito_bold"
+					app:layout_constrainedWidth="true"
+					app:layout_constraintEnd_toEndOf="parent"
+					app:layout_constraintHorizontal_bias="0"
+					app:layout_constraintStart_toStartOf="parent"
+					app:layout_constraintTop_toTopOf="parent"/>
+
+				<androidx.recyclerview.widget.RecyclerView
+					android:id="@+id/rv_favorite_cats"
+					android:layout_width="match_parent"
+					android:layout_height="0dp"
+					android:layout_marginTop="16dp"
+					android:clipToPadding="false"
+					android:paddingBottom="16dp"
+					app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+					app:layout_constraintBottom_toBottomOf="parent"
+					app:layout_constraintTop_toBottomOf="@+id/btn_breeds"
+					tools:listitem="@layout/holder_cat"/>
+
+				<androidx.appcompat.widget.AppCompatImageView
+					android:id="@+id/iv_empty"
+					android:layout_width="@dimen/image_size"
+					android:layout_height="@dimen/image_size"
+					android:layout_marginHorizontal="16dp"
+					android:visibility="gone"
+					app:layout_constraintBottom_toTopOf="@+id/tv_empty"
+					app:layout_constraintEnd_toEndOf="@+id/rv_favorite_cats"
+					app:layout_constraintStart_toStartOf="@id/rv_favorite_cats"
+					app:layout_constraintTop_toTopOf="@+id/rv_favorite_cats"
+					app:layout_constraintVertical_chainStyle="packed"
+					app:srcCompat="@drawable/favorites_empty_holder"/>
+
+				<androidx.appcompat.widget.AppCompatTextView
+					android:id="@+id/tv_empty"
+					style="@style/TextStyle"
+					android:layout_width="0dp"
+					android:layout_height="wrap_content"
+					android:layout_marginHorizontal="16dp"
+					android:gravity="center"
+					android:text="@string/empty_favorites_text"
+					android:visibility="gone"
+					app:layout_constraintBottom_toBottomOf="@+id/rv_favorite_cats"
+					app:layout_constraintEnd_toEndOf="@+id/rv_favorite_cats"
+					app:layout_constraintStart_toStartOf="@+id/rv_favorite_cats"
+					app:layout_constraintTop_toBottomOf="@+id/iv_empty"/>
+			</androidx.constraintlayout.widget.ConstraintLayout>
+		</androidx.constraintlayout.widget.ConstraintLayout>
 	</androidx.coordinatorlayout.widget.CoordinatorLayout>
 </layout>

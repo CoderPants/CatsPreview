@@ -12,10 +12,10 @@ import com.theoldone.catspreview.ui.viewmodels.CatViewModel
 import com.theoldone.catspreview.utils.Payloads
 
 class CatsAdapter(
-	private val loadNextPage: (() -> Unit)? = null,
 	private val onFavoriteClicked: (catId: String) -> Unit,
 	private val onDownloadClicked: (CatViewModel, Drawable) -> Unit,
-) : BaseListAdapter<CatType>(diffCallback) {
+	private val loadNextPage: (() -> Unit)? = null,
+	) : BaseListAdapter<CatType>(diffCallback) {
 
 	override fun onViewAttachedToWindow(holder: BaseHolder) {
 		super.onViewAttachedToWindow(holder)

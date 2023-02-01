@@ -19,16 +19,10 @@
 				android:id="@+id/toolbar"
 				android:layout_width="match_parent"
 				android:layout_height="wrap_content"
-				app:navigationIcon="@null">
-
-				<androidx.appcompat.widget.AppCompatTextView
-					android:id="@+id/tv_title"
-					style="@style/ToolbarTextStyle"
-					android:layout_width="wrap_content"
-					android:layout_height="wrap_content"
-					android:layout_gravity="center"
-					android:text="@string/choose_cat"/>
-			</com.google.android.material.appbar.MaterialToolbar>
+				app:navigationIcon="@null"
+				app:title="@string/choose_cat"
+				app:titleCentered="true"
+				app:titleTextAppearance="@style/ToolbarTextStyle"/>
 		</com.google.android.material.appbar.AppBarLayout>
 
 		<androidx.constraintlayout.widget.ConstraintLayout
@@ -72,7 +66,7 @@
 					app:layout_constraintEnd_toEndOf="parent"
 					app:layout_constraintStart_toEndOf="@+id/iv_favorite"
 					app:layout_constraintTop_toTopOf="parent"
-					tools:text="You liked 1 cats! Lets check them out!"/>
+					tools:text="You liked 1 cats! Click here and check them out!"/>
 
 			</androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -105,6 +99,7 @@
 					android:padding="5dp"
 					android:text="@string/breeds"
 					android:textSize="17sp"
+					android:visibility="gone"
 					app:fontFamily="@font/nunito_bold"
 					app:layout_constrainedWidth="true"
 					app:layout_constraintEnd_toEndOf="parent"
@@ -124,13 +119,41 @@
 					app:layout_constraintTop_toBottomOf="@+id/btn_breeds"
 					tools:listitem="@layout/holder_cat"/>
 
+				<androidx.appcompat.widget.AppCompatImageView
+					android:id="@+id/iv_empty"
+					android:layout_width="@dimen/image_size"
+					android:layout_height="@dimen/image_size"
+					android:layout_marginHorizontal="16dp"
+					android:visibility="gone"
+					app:layout_constraintBottom_toTopOf="@+id/tv_empty"
+					app:layout_constraintEnd_toEndOf="@+id/rv_cats"
+					app:layout_constraintStart_toStartOf="@id/rv_cats"
+					app:layout_constraintTop_toTopOf="@+id/rv_cats"
+					app:layout_constraintVertical_chainStyle="packed"
+					app:srcCompat="@drawable/empty_holder"
+					app:tint="@color/arsenic_2"/>
+
+				<androidx.appcompat.widget.AppCompatTextView
+					android:id="@+id/tv_empty"
+					style="@style/TextStyle"
+					android:layout_width="0dp"
+					android:layout_height="wrap_content"
+					android:layout_marginHorizontal="16dp"
+					android:gravity="center"
+					android:text="@string/empty_holder_text"
+					android:visibility="gone"
+					app:layout_constraintBottom_toBottomOf="@+id/rv_cats"
+					app:layout_constraintEnd_toEndOf="@+id/rv_cats"
+					app:layout_constraintStart_toStartOf="@+id/rv_cats"
+					app:layout_constraintTop_toBottomOf="@+id/iv_empty"/>
+
 				<View
 					android:id="@+id/progress_background"
 					android:layout_width="0dp"
 					android:layout_height="0dp"
+					android:alpha="0"
 					android:background="@color/bright_gray"
 					android:visibility="gone"
-					android:alpha="0"
 					app:layout_constraintBottom_toBottomOf="@+id/rv_cats"
 					app:layout_constraintEnd_toEndOf="@+id/rv_cats"
 					app:layout_constraintStart_toStartOf="@+id/rv_cats"
@@ -140,9 +163,9 @@
 					android:id="@+id/progress"
 					android:layout_width="wrap_content"
 					android:layout_height="wrap_content"
+					android:alpha="0"
 					android:indeterminate="true"
 					android:visibility="gone"
-					android:alpha="0"
 					app:hideAnimationBehavior="inward"
 					app:indicatorColor="@color/bright_gray"
 					app:layout_constraintBottom_toBottomOf="@+id/rv_cats"

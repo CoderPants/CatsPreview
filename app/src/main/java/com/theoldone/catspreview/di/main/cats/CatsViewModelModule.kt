@@ -12,5 +12,5 @@ interface CatsViewModelModule {
 	@Binds
 	@IntoMap
 	@ViewModelKey(CatsVM::class)
-	fun bindCatsViewModel(profileViewModel: CatsVM): ViewModel
+	fun bindCatsViewModel(catsVM: CatsVM): ViewModel
 }

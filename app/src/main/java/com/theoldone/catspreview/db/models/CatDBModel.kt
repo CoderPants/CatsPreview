@@ -5,6 +5,7 @@ import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
 import com.theoldone.catspreview.db.BreedListConverter
 import com.theoldone.catspreview.db.FavoriteCatsDao
+import com.theoldone.catspreview.ui.viewmodels.CatViewModel
 
 @Entity(tableName = FavoriteCatsDao.FAVORITE_TABLE_NAME)
 data class CatDBModel(
@@ -16,3 +17,5 @@ data class CatDBModel(
 	@TypeConverters(BreedListConverter::class)
 	val breeds: List<BreedDBModel>?
 )
+
+fun CatDBModel.toViewModel(isFavorite: Boolean) = CatViewModel(id, url, imageWidth, imageHeight, isFavorite)

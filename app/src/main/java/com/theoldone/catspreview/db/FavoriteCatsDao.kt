@@ -16,6 +16,9 @@ interface FavoriteCatsDao {
 	@Delete
 	suspend fun deleteFavoriteCat(cat: CatDBModel)
 
+	@Query("DELETE FROM $FAVORITE_TABLE_NAME WHERE id = :catId")
+	suspend fun deleteFavoriteCatById(catId: String)
+
 	@Query("SELECT * FROM $FAVORITE_TABLE_NAME")
 	fun favoriteCats(): Flow<List<CatDBModel>>
 
