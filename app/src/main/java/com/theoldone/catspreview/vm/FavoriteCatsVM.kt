@@ -41,7 +41,7 @@ class FavoriteCatsVM(
 		}
 	}
 
-	fun onDownloadClicked(url: String, drawable: Drawable) {
+	fun onDownloadClicked(viewModel: CatViewModel, drawable: Drawable) {
 		//todo
 	}
 }

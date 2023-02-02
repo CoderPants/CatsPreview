@@ -33,7 +33,7 @@ class CatsVM @Inject constructor(private val catsApi: CatsApi, private val favor
 	//Properly will be to save this into file and get it's path
 	//but i don't have enough time
 	var drawableToSave: Drawable? = null
-	var imageUrlToSave: String? = null
+	var catViewModelToUpdate: CatViewModel? = null
 	private val initFlow = MutableSharedFlow<InitCats>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 	private val updateFavoritesFlow = MutableSharedFlow<UpdateFavoriteText>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 	private val progressFlow = MutableSharedFlow<UpdateProgress>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
@@ -97,6 +97,13 @@ class CatsVM @Inject constructor(private val catsApi: CatsApi, private val favor
 			return
 
 		catViewModels.forEach { catViewModel -> catViewModel.isFavorite = favoritesCatIds.any { catViewModel.id == it } }
+		viewModelScope.launchMain { initFlow.emit(InitCats(catViewModelsCopy)) }
+	}
+
+	fun updateDownloadProgress(viewModel: CatViewModel, isDownloading: Boolean) {
+		val catViewModel = catViewModels.find { it.id == viewModel.id } ?: return
+
+		catViewModel.isDownloading = isDownloading
 		viewModelScope.launchMain { initFlow.emit(InitCats(catViewModelsCopy)) }
 	}
 }

@@ -1,5 +1,5 @@
 package com.theoldone.catspreview.utils
 
 enum class Payloads {
-	FAVORITE
+	FAVORITE, UPDATE_PROGRESS
 }

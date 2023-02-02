@@ -25,6 +25,7 @@ import com.theoldone.catspreview.db.models.CatDBModel
 import com.theoldone.catspreview.ui.adapters.CatsAdapter
 import com.theoldone.catspreview.ui.decorations.MarginDecoration
 import com.theoldone.catspreview.ui.screenstates.*
+import com.theoldone.catspreview.ui.viewmodels.CatViewModel
 import com.theoldone.catspreview.utils.*
 import com.theoldone.catspreview.vm.CatsVM
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -123,23 +124,23 @@ class CatsFragment : BindingFragment<FragmentCatsBinding>(R.layout.fragment_cats
 		progressFadeAnimator?.start()
 	}
 
-	private fun onDownloadClicked(url: String, drawable: Drawable) {
+	private fun onDownloadClicked(catViewModel: CatViewModel, drawable: Drawable) {
 		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
 			when {
 				userDeclinedWritePermission(settings) -> {
 					viewModel.drawableToSave = drawable
-					viewModel.imageUrlToSave = url
+					viewModel.catViewModelToUpdate = catViewModel
 					showAlert()
 				}
-				requireContext().hasWritePermission() -> saveImageToDownloadsInternal(url, drawable)
+				requireContext().hasWritePermission() -> saveImageToDownloads(catViewModel, drawable)
 				else -> {
 					viewModel.drawableToSave = drawable
-					viewModel.imageUrlToSave = url
+					viewModel.catViewModelToUpdate = catViewModel
 					requestPermissionLauncher.launch(WRITE_EXTERNAL_STORAGE)
 				}
 			}
 		} else {
-			saveImageToDownloadsInternal(url, drawable)
+			saveImageToDownloads(catViewModel, drawable)
 		}
 	}
 
@@ -159,20 +160,21 @@ class CatsFragment : BindingFragment<FragmentCatsBinding>(R.layout.fragment_cats
 			saveImageToDownloads()
 	}
 
-	private fun saveImageToDownloads() {
-		saveImageToDownloadsInternal(viewModel.imageUrlToSave ?: return, viewModel.drawableToSave ?: return)
+	private fun saveImageToDownloads(catViewModel: CatViewModel? = viewModel.catViewModelToUpdate, drawable: Drawable? = viewModel.drawableToSave) {
+		viewModel.updateDownloadProgress(catViewModel ?: return, isDownloading = true)
+		saveImageToDownloadsInternal(catViewModel, drawable ?: return)
 	}
 
 	// don't like to download image inside fragment, but glide needs context
 	@OptIn(DelicateCoroutinesApi::class)
-	private fun saveImageToDownloadsInternal(url: String, drawable: Drawable) = GlobalScope.launch(Dispatchers.IO) {
+	private fun saveImageToDownloadsInternal(catViewModel: CatViewModel, drawable: Drawable) = GlobalScope.launch(Dispatchers.IO) {
 		val context = requireContext().applicationContext
 		//download image of it's original size if has internet
 		val bitmap = if (hasInternetConnection(context)) {
 			Glide.with(context)
 				.asBitmap()
 				.diskCacheStrategy(DiskCacheStrategy.NONE)
-				.load(url)
+				.load(catViewModel.url)
 				.awaitImage()
 		} else {
 			drawable.toBitmap()
@@ -181,6 +183,7 @@ class CatsFragment : BindingFragment<FragmentCatsBinding>(R.layout.fragment_cats
 		launchMain {
 			//"try catch" for case, when context would be cleared by system
 			try {
+				viewModel.updateDownloadProgress(catViewModel, isDownloading = false)
 				Toast.makeText(context, if (isSuccess) R.string.file_saved_to_downloads else R.string.saving_error, Toast.LENGTH_SHORT).show()
 			} catch (t: Throwable) {
 				t.printStackTrace()

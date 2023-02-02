@@ -13,9 +13,9 @@ import com.theoldone.catspreview.utils.Payloads
 
 class CatsAdapter(
 	private val onFavoriteClicked: (catId: String) -> Unit,
-	private val onDownloadClicked: (url: String, Drawable) -> Unit,
+	private val onDownloadClicked: (CatViewModel, Drawable) -> Unit,
 	private val loadNextPage: (() -> Unit)? = null,
-	) : BaseListAdapter<CatType>(diffCallback) {
+) : BaseListAdapter<CatType>(diffCallback) {
 
 	override fun onViewAttachedToWindow(holder: BaseHolder) {
 		super.onViewAttachedToWindow(holder)
@@ -47,10 +47,12 @@ class CatsAdapter(
 
 			override fun areContentsTheSame(oldItem: CatType, newItem: CatType) = oldItem == newItem
 
-			override fun getChangePayload(oldItem: CatType, newItem: CatType) = if (oldItem is CatViewModel && newItem is CatViewModel && oldItem.isFavorite != newItem.isFavorite)
-				Payloads.FAVORITE
-			else
-				null
+			override fun getChangePayload(oldItem: CatType, newItem: CatType) = when {
+				oldItem !is CatViewModel || newItem !is CatViewModel -> null
+				oldItem.isFavorite != newItem.isFavorite -> Payloads.FAVORITE
+				oldItem.isDownloading != newItem.isDownloading -> Payloads.UPDATE_PROGRESS
+				else -> null
+			}
 		}
 	}
 }

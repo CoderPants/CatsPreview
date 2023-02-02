@@ -1,5 +1,7 @@
 package com.theoldone.catspreview.utils
 
+import android.util.Log
+import android.view.View
 import androidx.annotation.ColorRes
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.databinding.BindingAdapter
@@ -12,6 +14,7 @@ import com.theoldone.catspreview.R
 
 @BindingAdapter("bind:url", "bind:restrictSize", requireAll = false)
 fun setImage(view: AppCompatImageView, url: String?, restrictSize: Boolean?) {
+	Log.v("MYTAG", "setImage")
 	if (url == null)
 		return
 
@@ -39,4 +42,11 @@ fun setImage(view: AppCompatImageView, url: String?, restrictSize: Boolean?) {
 @BindingAdapter("bind:tintColor")
 fun setTint(view: AppCompatImageView, @ColorRes colorId: Int) {
 	view.drawable.setTintFixed(view.context.getColor(colorId))
+}
+
+@BindingAdapter("bind:visibilityCompat")
+fun setVisibility(view: View, visible: Boolean?) {
+	visible ?: return
+
+	view.visibility = if (visible) View.VISIBLE else View.INVISIBLE
 }

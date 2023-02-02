@@ -3,6 +3,7 @@
 	xmlns:bind="http://schemas.android.com/tools">
 
 	<data>
+
 		<variable
 			name="viewModel"
 			type="com.theoldone.catspreview.ui.viewmodels.CatViewModel"/>
@@ -30,10 +31,10 @@
 				android:layout_gravity="center"
 				android:layout_margin="16dp"
 				android:layout_marginHorizontal="@dimen/margin_horizontal"
-				bind:url="@{viewModel.url}"
-				bind:restrictSize="@{true}"
 				app:layout_constraintTop_toTopOf="parent"
-				app:srcCompat="@drawable/image_place_holder"/>
+				app:srcCompat="@drawable/image_place_holder"
+				bind:restrictSize="@{true}"
+				bind:url="@{viewModel.url}"/>
 		</FrameLayout>
 
 		<View
@@ -72,12 +73,12 @@
 			android:layout_height="wrap_content"
 			android:background="@drawable/ripple_oval"
 			android:padding="12dp"
-			bind:tintColor="@{viewModel.favoriteColor}"
 			app:layout_constraintBottom_toBottomOf="@+id/favorite_btn_bg"
 			app:layout_constraintEnd_toEndOf="@+id/favorite_btn_bg"
 			app:layout_constraintStart_toStartOf="@+id/favorite_btn_bg"
 			app:layout_constraintTop_toTopOf="@+id/favorite_btn_bg"
-			app:srcCompat="@drawable/ic_favorite"/>
+			app:srcCompat="@drawable/ic_favorite"
+			bind:tintColor="@{viewModel.favoriteColor}"/>
 
 		<androidx.appcompat.widget.AppCompatImageView
 			android:id="@+id/btn_download"
@@ -91,5 +92,19 @@
 			app:layout_constraintTop_toTopOf="@+id/download_btn_bg"
 			app:srcCompat="@drawable/ic_download"/>
 
+		<com.google.android.material.progressindicator.CircularProgressIndicator
+			android:id="@+id/progress_download"
+			android:layout_width="0dp"
+			android:layout_height="0dp"
+			android:indeterminate="true"
+			android:visibility="gone"
+			app:hideAnimationBehavior="inward"
+			app:indicatorColor="@color/bright_gray"
+			app:layout_constraintBottom_toBottomOf="@+id/btn_download"
+			app:layout_constraintEnd_toEndOf="@+id/btn_download"
+			app:layout_constraintStart_toStartOf="@+id/btn_download"
+			app:layout_constraintTop_toTopOf="@+id/btn_download"
+			app:showAnimationBehavior="outward"
+			app:trackColor="@color/manatee"/>
 	</androidx.constraintlayout.widget.ConstraintLayout>
 </layout>
