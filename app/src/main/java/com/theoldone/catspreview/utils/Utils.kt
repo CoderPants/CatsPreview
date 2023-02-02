@@ -1,16 +1,41 @@
 package com.theoldone.catspreview.utils
 
+import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+import android.app.Activity
+import android.content.ContentResolver
+import android.content.ContentValues
+import android.content.Context
+import android.content.Intent
 import android.content.res.Resources
+import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.net.Uri
+import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
 import android.view.View
+import androidx.annotation.RequiresApi
+import androidx.core.app.ActivityCompat
+import androidx.core.content.PermissionChecker
 import androidx.core.graphics.drawable.DrawableCompat
+import androidx.fragment.app.Fragment
+import com.bumptech.glide.RequestBuilder
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
 import com.theoldone.catspreview.R
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
+import java.io.*
+import kotlin.coroutines.resume
+
+private val contentValues: ContentValues
+	get() = ContentValues().apply {
+		put(MediaStore.Images.Media.MIME_TYPE, "image/png")
+		put(MediaStore.Images.Media.DATE_ADDED, System.currentTimeMillis())
+	}
 
 val Int.dp get() = (this * Resources.getSystem().displayMetrics.density).toInt()
 
@@ -36,3 +61,98 @@ fun Drawable.setTintFixed(color: Int) {
 //after getting data, i need to delete all data in replay cache, so view, after recreation, won't trigger it one more time
 @OptIn(ExperimentalCoroutinesApi::class)
 fun <T : Any> MutableSharedFlow<T>.asOneExecutionStrategy() = onEach { this.resetReplayCache() }
+
+suspend fun saveToDownloads(context: Context, bitmap: Bitmap) =
+	if (Build.VERSION.SDK_INT >= 29) saveToDownloadsFromQ(context, bitmap) else saveToDownloadsLessThenQ(context, bitmap)
+
+@RequiresApi(Build.VERSION_CODES.Q)
+private suspend fun saveToDownloadsFromQ(context: Context, bitmap: Bitmap): Boolean = withContext(Dispatchers.IO) {
+	val values = contentValues
+	values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis())
+	values.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+	//To give access for other apps to see our image
+	values.put(MediaStore.Images.Media.IS_PENDING, false)
+	val contentResolver = context.contentResolver
+	val uri = contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values) ?: return@withContext false
+	val out = outputStream(contentResolver, uri) ?: return@withContext false
+
+	if (!bitmap.compress(Bitmap.CompressFormat.PNG, 90, out))
+		return@withContext false
+
+	contentResolver.update(uri, values, null, null)
+	return@withContext true
+}
+
+private suspend fun saveToDownloadsLessThenQ(context: Context, bitmap: Bitmap): Boolean = withContext(Dispatchers.IO) {
+	val directory = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toString())
+	if (!directory.exists())
+		directory.mkdirs()
+
+	val outFile = File(directory, System.currentTimeMillis().toString() + ".png")
+	val out = outputStream(outFile) ?: return@withContext false
+
+	if (!bitmap.compress(Bitmap.CompressFormat.PNG, 90, out))
+		return@withContext false
+
+	val values = contentValues
+	values.put(MediaStore.Images.Media.DATA, outFile.absolutePath)
+	context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+	return@withContext true
+}
+
+private fun outputStream(contentResolver: ContentResolver, uri: Uri) = try {
+	contentResolver.openOutputStream(uri)
+} catch (e: FileNotFoundException) {
+	e.printStackTrace()
+	null
+}
+
+private fun outputStream(file: File) = try {
+	file.outputStream()
+} catch (e: FileNotFoundException) {
+	e.printStackTrace()
+	null
+}
+
+fun Context.hasWritePermission() = ActivityCompat.checkSelfPermission(this, WRITE_EXTERNAL_STORAGE) == PermissionChecker.PERMISSION_GRANTED
+
+fun Fragment.userDeclinedWritePermission(settings: Settings): Boolean {
+	val shouldShowRequestPermissionRationale = shouldShowRequestPermissionRationale(WRITE_EXTERNAL_STORAGE)
+	if (shouldShowRequestPermissionRationale && !settings.writePermissionDialogAppeared) {
+		settings.writePermissionDialogAppeared = true
+		settings.save()
+	}
+	return !requireContext().hasWritePermission() && !shouldShowRequestPermissionRationale && settings.writePermissionDialogAppeared
+}
+
+fun Activity.openAppSettings(requestCode: Int? = null) {
+	val intent = Intent().apply { configureToOpenSettings(packageName) }
+	requestCode?.let { startActivityForResult(intent, requestCode) } ?: startActivity(intent)
+}
+
+private fun Intent.configureToOpenSettings(packageName: String) {
+	action = android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+	addCategory(Intent.CATEGORY_DEFAULT)
+	data = Uri.parse("package:${packageName}")
+}
+
+fun hasInternetConnection(context: Context): Boolean {
+	val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+	val network = connectivityManager.activeNetwork ?: return false
+	val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
+	return capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) ||
+		capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
+		capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)
+}
+
+suspend fun RequestBuilder<Bitmap>.awaitImage() = suspendCancellableCoroutine {
+	into(object : CustomTarget<Bitmap>() {
+		override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
+			it.resume(resource)
+		}
+
+		override fun onLoadCleared(placeholder: Drawable?) {
+			//nothing
+		}
+	})
+}

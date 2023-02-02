@@ -12,13 +12,13 @@ import com.theoldone.catspreview.utils.setTint
 class CatHolder(
 	parent: ViewGroup,
 	private val onFavoriteClicked: (catId: String) -> Unit,
-	private val onDownloadClicked: (CatViewModel, Drawable) -> Unit,
+	private val onDownloadClicked: (url: String, Drawable) -> Unit,
 ) : BindingHolder<HolderCatBinding>(parent, R.layout.holder_cat) {
 
 	private val viewModel get() = item as CatViewModel
 
 	init {
-		binding.btnDownload.setOnSingleTap { onDownloadClicked(viewModel, binding.ivCat.drawable) }
+		binding.btnDownload.setOnSingleTap { onDownloadClicked(viewModel.url, binding.ivCat.drawable) }
 		binding.btnFavorite.setOnSingleTap { onFavoriteClicked(viewModel.id) }
 	}
 

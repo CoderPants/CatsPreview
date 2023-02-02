@@ -9,6 +9,12 @@
 	<string name="breeds">Breeds</string>
 	<string name="empty_holder_text">Looks like all cats are sleeping!</string>
 	<string name="empty_favorites_text">Cat bad is empty… Add cats to favorites!</string>
+	<string name="file_saved_to_downloads">File saved to the downloads!</string>
+	<string name="saving_error">Error occurred, while saving file to the gallery</string>
+	<string name="alert_title">Cats alert!</string>
+	<string name="alert_message">To be able to save a cat, you need to grant permission!</string>
+	<string name="cancel">Cancel</string>
+	<string name="go_to_settings">Go to settings</string>
 
 	<!--Utils tag-->
 	<string name="single_tap_tag">single_tap_tag</string>

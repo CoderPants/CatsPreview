@@ -1,7 +1,9 @@
 package com.theoldone.catspreview.ui.activities
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.flowWithLifecycle
@@ -23,11 +25,11 @@ class MainActivity : BindingActivity<ActvityMainBinding>(R.layout.actvity_main),
 	@Inject
 	lateinit var viewModelProviderFactory: ViewModelProvider.Factory
 	lateinit var viewModel: MainVM
-	private val favoritesConsumer: FavoritesConsumer?
+	private val currentFragment: Fragment?
 		get() = supportFragmentManager.findFragmentById(R.id.nav_host_fragment)
 			?.childFragmentManager
 			?.fragments
-			?.firstOrNull() as? FavoritesConsumer
+			?.firstOrNull()
 
 	override fun onCreate(inState: Bundle?) {
 		installSplashScreen()
@@ -37,13 +39,18 @@ class MainActivity : BindingActivity<ActvityMainBinding>(R.layout.actvity_main),
 		observeUiState()
 	}
 
+	override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+		super.onActivityResult(requestCode, resultCode, data)
+		currentFragment?.onActivityResult(requestCode, resultCode, data)
+	}
+
 	private fun observeUiState() {
 		lifecycleScope.launchMain {
 			viewModel.uiState
 				.flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
 				.collect { state ->
 					if (state is UpdateFavorites)
-						favoritesConsumer?.updateFavorites(state.favoritesCatIds)
+						(currentFragment as? FavoritesConsumer)?.updateFavorites(state.favoritesCatIds)
 				}
 		}
 	}

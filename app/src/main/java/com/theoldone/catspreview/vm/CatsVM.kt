@@ -27,11 +27,17 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class CatsVM @Inject constructor(private val catsApi: CatsApi, private val favoriteCatsDao: FavoriteCatsDao, private var recourseManager: RecourseManager) : ViewModel() {
+	val uiState by lazy { merge(initFlow, updateFavoritesFlow, progressFlow.asOneExecutionStrategy(), showBottomProgressFlow) }
+
+	//Still thinks about this
+	//Properly will be to save this into file and get it's path
+	//but i don't have enough time
+	var drawableToSave: Drawable? = null
+	var imageUrlToSave: String? = null
 	private val initFlow = MutableSharedFlow<InitCats>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 	private val updateFavoritesFlow = MutableSharedFlow<UpdateFavoriteText>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 	private val progressFlow = MutableSharedFlow<UpdateProgress>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 	private val showBottomProgressFlow = MutableSharedFlow<ShowBottomProgress>()
-	val uiState by lazy { merge(initFlow, updateFavoritesFlow, progressFlow.asOneExecutionStrategy(), showBottomProgressFlow) }
 	private val catViewModels = mutableListOf<CatViewModel>()
 	private val catModels = mutableListOf<CatServerModel>()
 	private val catViewModelsCopy get() = catViewModels.map { it.copy() }
@@ -82,10 +88,6 @@ class CatsVM @Inject constructor(private val catsApi: CatsApi, private val favor
 				favoriteCatsDao.deleteFavoriteCat(catDBModel)
 		}
 		viewModelScope.launchMain { initFlow.emit(InitCats(catViewModelsCopy)) }
-	}
-
-	fun onDownloadClicked(catViewModel: CatViewModel, drawable: Drawable) {
-		//todo
 	}
 
 	fun updateFavorites(favoritesCatIds: List<String>) {

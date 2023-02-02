@@ -13,7 +13,7 @@ import com.theoldone.catspreview.utils.Payloads
 
 class CatsAdapter(
 	private val onFavoriteClicked: (catId: String) -> Unit,
-	private val onDownloadClicked: (CatViewModel, Drawable) -> Unit,
+	private val onDownloadClicked: (url: String, Drawable) -> Unit,
 	private val loadNextPage: (() -> Unit)? = null,
 	) : BaseListAdapter<CatType>(diffCallback) {
 
