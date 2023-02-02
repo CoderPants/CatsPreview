@@ -1,9 +1,8 @@
 package com.theoldone.catspreview.ui.screenstates
 
-import com.theoldone.catspreview.ui.viewmodels.CatViewModel
+import com.theoldone.catspreview.ui.viewmodels.CatType
 
 sealed interface CatsScreenState
 class UpdateProgress(val showProgress: Boolean) : CatsScreenState
-object ShowBottomProgress : CatsScreenState
-class InitCats(val cats: List<CatViewModel>) : CatsScreenState
+class InitCats(val cats: List<CatType>) : CatsScreenState
 object FavoriteAnimation : CatsScreenState

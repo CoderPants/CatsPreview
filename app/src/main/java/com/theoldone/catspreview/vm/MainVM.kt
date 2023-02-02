@@ -15,6 +15,8 @@ import javax.inject.Inject
 
 class MainVM @Inject constructor(favoriteCatsDao: FavoriteCatsDao) : ViewModel() {
 	private val _uiState = MutableSharedFlow<MainScreenState>()
+
+	//todo shared repository
 	val uiState = _uiState.asSharedFlow()
 	var favorites: List<CatDBModel> = listOf()
 

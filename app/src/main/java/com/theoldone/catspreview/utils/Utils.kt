@@ -1,7 +1,6 @@
 package com.theoldone.catspreview.utils
 
 import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
-import android.app.Activity
 import android.content.ContentResolver
 import android.content.ContentValues
 import android.content.Context
@@ -21,6 +20,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.PermissionChecker
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.RequestBuilder
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
@@ -55,6 +55,21 @@ fun View.setOnSingleTap(delay: Long = 200L, block: (v: View) -> Unit) {
 fun Drawable.setTintFixed(color: Int) {
 	val wrapped = DrawableCompat.wrap(this).mutate()
 	DrawableCompat.setTint(wrapped, color)
+}
+
+fun RecyclerView.onLastItemCallback(block: () -> Unit): RecyclerView.OnChildAttachStateChangeListener {
+	val listener = object : RecyclerView.OnChildAttachStateChangeListener {
+		override fun onChildViewAttachedToWindow(view: View) {
+			val size = adapter?.itemCount ?: return
+
+			if (getChildViewHolder(view)?.bindingAdapterPosition == size - 1)
+				block.invoke()
+		}
+
+		override fun onChildViewDetachedFromWindow(view: View) {}
+	}
+	addOnChildAttachStateChangeListener(listener)
+	return listener
 }
 
 //I need to remember data till view is not active
@@ -125,12 +140,7 @@ fun Fragment.userDeclinedWritePermission(settings: Settings): Boolean {
 	return !requireContext().hasWritePermission() && !shouldShowRequestPermissionRationale && settings.writePermissionDialogAppeared
 }
 
-fun Activity.openAppSettings(requestCode: Int? = null) {
-	val intent = Intent().apply { configureToOpenSettings(packageName) }
-	requestCode?.let { startActivityForResult(intent, requestCode) } ?: startActivity(intent)
-}
-
-private fun Intent.configureToOpenSettings(packageName: String) {
+fun Context.createSettingsIntent() = Intent().apply {
 	action = android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS
 	addCategory(Intent.CATEGORY_DEFAULT)
 	data = Uri.parse("package:${packageName}")

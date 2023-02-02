@@ -15,6 +15,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
 import com.theoldone.catspreview.R
 import com.theoldone.catspreview.databinding.FragmentCatsBinding
@@ -24,11 +25,11 @@ import com.theoldone.catspreview.ui.adapters.holders.ImageProvider
 import com.theoldone.catspreview.ui.decorations.MarginDecoration
 import com.theoldone.catspreview.ui.screenstates.FavoriteAnimation
 import com.theoldone.catspreview.ui.screenstates.InitCats
-import com.theoldone.catspreview.ui.screenstates.ShowBottomProgress
 import com.theoldone.catspreview.ui.screenstates.UpdateProgress
 import com.theoldone.catspreview.ui.viewmodels.CatViewModel
 import com.theoldone.catspreview.utils.dp
 import com.theoldone.catspreview.utils.launchMain
+import com.theoldone.catspreview.utils.onLastItemCallback
 import com.theoldone.catspreview.utils.setOnSingleTap
 import com.theoldone.catspreview.vm.CatsVM
 import javax.inject.Inject
@@ -38,9 +39,10 @@ class CatsFragment : BaseFragment<FragmentCatsBinding>(R.layout.fragment_cats), 
 	@Inject
 	lateinit var viewModelProviderFactory: ViewModelProvider.Factory
 	lateinit var viewModel: CatsVM
-	private val adapter by lazy { CatsAdapter(viewModel::onFavoriteClicked, this::onDownloadClicked, viewModel::loadNextPage) }
+	private val adapter by lazy { CatsAdapter(viewModel::onFavoriteClicked, this::onDownloadClicked) }
 	private var progressFadeAnimator: ValueAnimator? = null
 	private var pulsingAnimator: ValueAnimator? = null
+	private var listener: RecyclerView.OnChildAttachStateChangeListener? = null
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
@@ -54,18 +56,24 @@ class CatsFragment : BaseFragment<FragmentCatsBinding>(R.layout.fragment_cats), 
 		adapter.stateRestorationPolicy = PREVENT_WHEN_EMPTY
 		binding.rvCats.adapter = adapter
 		binding.rvCats.addItemDecoration(MarginDecoration(middleIndentPx = 10.dp))
+		listener = binding.rvCats.onLastItemCallback(viewModel::loadNextPage)
 		binding.btnFavorites.setOnSingleTap { onFavoriteClick() }
 		updateFavorites((activity as? FavoritesProvider)?.favorites ?: emptyList())
+	}
+
+	override fun onDestroyView() {
+		super.onDestroyView()
+		listener?.let { binding.rvCats.removeOnChildAttachStateChangeListener(it) }
 	}
 
 	override fun updateFavorites(favoriteCats: List<CatDBModel>) {
 		viewModel.updateFavorites(favoriteCats.map { it.id })
 	}
 
-	override fun provideViewModelAndDrawable(viewModelId: String): Pair<CatViewModel, Drawable?>? {
-		val catViewModel = viewModel.catViewModelById(viewModelId) ?: return null
-		val holderIndex = adapter.currentList.indexOfFirst { it.id == viewModelId }.takeIf { it >= 0 } ?: return Pair(catViewModel, null)
-		return Pair(catViewModel, (binding.rvCats.findViewHolderForAdapterPosition(holderIndex) as? ImageProvider)?.image)
+	override fun provideDrawable(catViewModel: CatViewModel): Drawable? {
+		val holderIndex = adapter.currentList.indexOfFirst { it.id == catViewModel.id }.takeIf { it >= 0 } ?: return null
+
+		return (binding.rvCats.findViewHolderForAdapterPosition(holderIndex) as? ImageProvider)?.image
 	}
 
 	override fun updateDownloadingProgress(catViewModel: CatViewModel, isDownloading: Boolean) {
@@ -85,7 +93,6 @@ class CatsFragment : BaseFragment<FragmentCatsBinding>(R.layout.fragment_cats), 
 						}
 						is FavoriteAnimation -> startPulsingAnim()
 						is UpdateProgress -> updateProgress(state.showProgress)
-						ShowBottomProgress -> adapter.addBottomProgress()
 					}
 				}
 		}

@@ -46,6 +46,4 @@ class FavoriteCatsVM(
 		catViewModel.isDownloading = isDownloading
 		viewModelScope.launchMain { initFlow.emit(InitFavorites(catViewModelsCopy)) }
 	}
-
-	fun catViewModelById(viewModelId: String) = catViewModels.find { it.id == viewModelId }
 }

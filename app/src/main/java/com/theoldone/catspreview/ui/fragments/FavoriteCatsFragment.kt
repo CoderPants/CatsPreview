@@ -52,10 +52,10 @@ class FavoriteCatsFragment : BaseFragment<FragmentFavoriteCatsBinding>(R.layout.
 		viewModel.updateDownloadProgress(catViewModel, isDownloading)
 	}
 
-	override fun provideViewModelAndDrawable(viewModelId: String): Pair<CatViewModel, Drawable?>? {
-		val catViewModel = viewModel.catViewModelById(viewModelId) ?: return null
-		val holderIndex = adapter.currentList.indexOfFirst { it.id == viewModelId }.takeIf { it >= 0 } ?: return Pair(catViewModel, null)
-		return Pair(catViewModel, (binding.rvFavoriteCats.findViewHolderForAdapterPosition(holderIndex) as? ImageProvider)?.image)
+	override fun provideDrawable(catViewModel: CatViewModel): Drawable? {
+		val holderIndex = adapter.currentList.indexOfFirst { it.id == catViewModel.id }.takeIf { it >= 0 } ?: return null
+
+		return (binding.rvFavoriteCats.findViewHolderForAdapterPosition(holderIndex) as? ImageProvider)?.image
 	}
 
 	private fun observeUiState() {

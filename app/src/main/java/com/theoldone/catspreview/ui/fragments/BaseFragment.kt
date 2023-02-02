@@ -2,7 +2,6 @@ package com.theoldone.catspreview.ui.fragments
 
 import android.Manifest
 import android.app.AlertDialog
-import android.content.Intent
 import android.graphics.drawable.Drawable
 import android.os.Build
 import android.os.Bundle
@@ -32,7 +31,8 @@ abstract class BaseFragment<T : ViewDataBinding>(private val layoutResId: Int) :
 	lateinit var settings: Settings
 	protected lateinit var binding: T
 	private val requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission(), this::handlePermissionResult)
-	private var catIdToDownload: String? = null
+	private val settingsLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { handleSettingsResult() }
+	private var savedCatViewModel: CatViewModel? = null
 
 	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, inState: Bundle?): View? {
 		binding = DataBindingUtil.inflate(inflater, layoutResId, container, false)
@@ -47,16 +47,7 @@ abstract class BaseFragment<T : ViewDataBinding>(private val layoutResId: Int) :
 		}
 	}
 
-	//For settings screen
-	override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-		super.onActivityResult(requestCode, resultCode, data)
-		if (requestCode == SETTINGS_REQUEST_CODE && requireContext().hasWritePermission()) {
-			val pair = provideViewModelAndDrawable(catIdToDownload ?: return)
-			saveImageToDownloads(pair?.first ?: return, pair.second)
-		}
-	}
-
-	protected open fun provideViewModelAndDrawable(viewModelId: String): Pair<CatViewModel, Drawable?>? = null
+	protected open fun provideDrawable(catViewModel: CatViewModel): Drawable? = null
 
 	protected open fun updateDownloadingProgress(catViewModel: CatViewModel, isDownloading: Boolean) {}
 
@@ -64,12 +55,12 @@ abstract class BaseFragment<T : ViewDataBinding>(private val layoutResId: Int) :
 		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
 			when {
 				userDeclinedWritePermission(settings) -> {
-					catIdToDownload = catViewModel.id
+					savedCatViewModel = catViewModel
 					showAlert()
 				}
 				requireContext().hasWritePermission() -> saveImageToDownloads(catViewModel, drawable)
 				else -> {
-					catIdToDownload = catViewModel.id
+					savedCatViewModel = catViewModel
 					requestPermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
 				}
 			}
@@ -82,17 +73,24 @@ abstract class BaseFragment<T : ViewDataBinding>(private val layoutResId: Int) :
 		val builder = AlertDialog.Builder(requireContext())
 			.setTitle(R.string.alert_title)
 			.setMessage(R.string.alert_message)
-			.setNegativeButton(R.string.cancel) { _, _ -> catIdToDownload = null }
-			.setPositiveButton(R.string.go_to_settings) { _, _ -> requireActivity().openAppSettings(SETTINGS_REQUEST_CODE) }
+			.setNegativeButton(R.string.cancel) { _, _ -> savedCatViewModel = null }
+			.setPositiveButton(R.string.go_to_settings) { _, _ -> settingsLauncher.launch(requireContext().createSettingsIntent()) }
 		builder.show()
 	}
 
 	private fun handlePermissionResult(granted: Boolean) {
 		if (granted) {
-			val pair = provideViewModelAndDrawable(catIdToDownload ?: return)
-			saveImageToDownloads(pair?.first ?: return, pair.second)
+			saveImageToDownloads(savedCatViewModel ?: return, provideDrawable(savedCatViewModel ?: return))
 		} else {
-			catIdToDownload = null
+			savedCatViewModel = null
+		}
+	}
+
+	private fun handleSettingsResult() {
+		if (requireContext().hasWritePermission()) {
+			saveImageToDownloads(savedCatViewModel ?: return, provideDrawable(savedCatViewModel ?: return))
+		} else {
+			savedCatViewModel = null
 		}
 	}
 
@@ -122,14 +120,10 @@ abstract class BaseFragment<T : ViewDataBinding>(private val layoutResId: Int) :
 			try {
 				updateDownloadingProgress(catViewModel, isDownloading = false)
 				Toast.makeText(context, if (isSuccess) R.string.file_saved_to_downloads else R.string.saving_error, Toast.LENGTH_SHORT).show()
-				catIdToDownload = null
+				savedCatViewModel = null
 			} catch (t: Throwable) {
 				t.printStackTrace()
 			}
 		}
-	}
-
-	companion object {
-		private const val SETTINGS_REQUEST_CODE = 11
 	}
 }

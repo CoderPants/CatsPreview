@@ -8,6 +8,7 @@ import com.theoldone.catspreview.ui.viewmodels.CatViewModel
 import com.theoldone.catspreview.utils.*
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 
 class CatHolder(
@@ -17,8 +18,8 @@ class CatHolder(
 ) : BindingHolder<HolderCatBinding>(parent, R.layout.holder_cat), ImageProvider {
 
 	override val image: Drawable get() = binding.ivCat.drawable
-
 	private val viewModel get() = item as CatViewModel
+	private var waitingJob: Job? = null
 
 	init {
 		binding.btnDownload.setOnSingleTap {
@@ -26,6 +27,11 @@ class CatHolder(
 				onDownloadClicked(viewModel, binding.ivCat.drawable)
 		}
 		binding.btnFavorite.setOnSingleTap { onFavoriteClicked(viewModel.id) }
+	}
+
+	override fun onRecycled() {
+		super.onRecycled()
+		waitingJob?.cancel()
 	}
 
 	override fun update(item: Any) {
@@ -59,7 +65,7 @@ class CatHolder(
 		} else {
 			binding.progressDownload.hide()
 			//wait for animation to finish
-			GlobalScope.launchMain {
+			waitingJob = GlobalScope.launchMain {
 				delay(400)
 				update()
 			}

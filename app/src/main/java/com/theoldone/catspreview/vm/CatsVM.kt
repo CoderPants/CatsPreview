@@ -7,8 +7,9 @@ import com.theoldone.catspreview.server.CatsApi
 import com.theoldone.catspreview.server.models.toViewModel
 import com.theoldone.catspreview.ui.screenstates.FavoriteAnimation
 import com.theoldone.catspreview.ui.screenstates.InitCats
-import com.theoldone.catspreview.ui.screenstates.ShowBottomProgress
 import com.theoldone.catspreview.ui.screenstates.UpdateProgress
+import com.theoldone.catspreview.ui.viewmodels.BottomProgressViewModel
+import com.theoldone.catspreview.ui.viewmodels.CatType
 import com.theoldone.catspreview.ui.viewmodels.CatViewModel
 import com.theoldone.catspreview.ui.viewmodels.toDBModel
 import com.theoldone.catspreview.utils.Settings
@@ -24,16 +25,16 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class CatsVM @Inject constructor(
+	//todo repository
 	private val catsApi: CatsApi,
 	private val favoriteCatsDao: FavoriteCatsDao,
 	private val settings: Settings
 ) : ViewModel() {
 
-	val uiState by lazy { merge(initFlow, updateFavoritesFlow, progressFlow.asOneExecutionStrategy(), showBottomProgressFlow) }
+	val uiState by lazy { merge(initFlow, updateFavoritesFlow, progressFlow.asOneExecutionStrategy()) }
 	private val initFlow = MutableSharedFlow<InitCats>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 	private val progressFlow = MutableSharedFlow<UpdateProgress>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 	private val updateFavoritesFlow = MutableSharedFlow<FavoriteAnimation>()
-	private val showBottomProgressFlow = MutableSharedFlow<ShowBottomProgress>()
 	private val catViewModels = mutableListOf<CatViewModel>()
 	private val catViewModelsCopy get() = catViewModels.map { it.copy() }
 	private var loadNextPageJob: Job? = null
@@ -52,8 +53,15 @@ class CatsVM @Inject constructor(
 		progressFlow.emit(UpdateProgress(showProgress = false))
 	}
 
-	private suspend fun loadCatsInternal() {
-		val loadedCats = withContext(IO) { catsApi.getCats(currentPage) }
+	private suspend fun loadCatsInternal(loadNextPage: Boolean = false) {
+		val loadedCats = try {
+			withContext(IO) { catsApi.getCats(if (loadNextPage) currentPage + 1 else currentPage) }
+		} catch (e: Exception) {
+			e.printStackTrace()
+			emptyList()
+		}
+		if (loadedCats.isNotEmpty() && loadNextPage)
+			currentPage++
 		catViewModels.addAll(loadedCats.map { model -> model.toViewModel(isFavorite = favoritesIds.any { model.id == it }) })
 		initFlow.emit(InitCats(catViewModelsCopy))
 	}
@@ -63,9 +71,12 @@ class CatsVM @Inject constructor(
 			return
 
 		loadNextPageJob = viewModelScope.launchMain {
-			showBottomProgressFlow.emit(ShowBottomProgress)
-			currentPage++
-			loadCatsInternal()
+			val listWithBottomProgress = mutableListOf<CatType>().apply {
+				addAll(catViewModelsCopy)
+				add(BottomProgressViewModel())
+			}
+			initFlow.emit(InitCats(listWithBottomProgress))
+			loadCatsInternal(loadNextPage = true)
 		}
 	}
 
@@ -103,6 +114,4 @@ class CatsVM @Inject constructor(
 		catViewModel.isDownloading = isDownloading
 		viewModelScope.launchMain { initFlow.emit(InitCats(catViewModelsCopy)) }
 	}
-
-	fun catViewModelById(viewModelId: String) = catViewModels.find { it.id == viewModelId }
 }

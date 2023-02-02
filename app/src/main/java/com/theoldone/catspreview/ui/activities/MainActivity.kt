@@ -1,6 +1,5 @@
 package com.theoldone.catspreview.ui.activities
 
-import android.content.Intent
 import android.os.Bundle
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.fragment.app.Fragment
@@ -19,6 +18,7 @@ import com.theoldone.catspreview.vm.MainVM
 import javax.inject.Inject
 
 class MainActivity : BaseActivity<ActvityMainBinding>(R.layout.actvity_main), FavoritesProvider {
+	//todo shared view model
 	override val favorites: List<CatDBModel> get() = viewModel.favorites
 
 	@Inject
@@ -38,17 +38,12 @@ class MainActivity : BaseActivity<ActvityMainBinding>(R.layout.actvity_main), Fa
 		observeUiState()
 	}
 
-	//For settings screen result
-	override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-		super.onActivityResult(requestCode, resultCode, data)
-		currentFragment?.onActivityResult(requestCode, resultCode, data)
-	}
-
 	private fun observeUiState() {
 		lifecycleScope.launchMain {
 			viewModel.uiState
 				.flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
 				.collect { state ->
+					//todo change to shared repo
 					if (state is UpdateFavorites)
 						(currentFragment as? FavoritesConsumer)?.updateFavorites(state.favoritesCatIds)
 				}
