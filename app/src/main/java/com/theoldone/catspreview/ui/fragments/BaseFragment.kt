@@ -58,6 +58,8 @@ abstract class BaseFragment<T : ViewDataBinding>(private val layoutResId: Int) :
 
 	protected open fun saveData(catViewModel: CatViewModel, drawable: Drawable) {}
 
+	protected open fun removeSavedData() {}
+
 	protected open fun updateDownloadingProgress(catViewModel: CatViewModel, isDownloading: Boolean) {}
 
 	protected fun onDownloadClicked(catViewModel: CatViewModel, drawable: Drawable) {
@@ -119,6 +121,7 @@ abstract class BaseFragment<T : ViewDataBinding>(private val layoutResId: Int) :
 			try {
 				updateDownloadingProgress(catViewModel, isDownloading = false)
 				Toast.makeText(context, if (isSuccess) R.string.file_saved_to_downloads else R.string.saving_error, Toast.LENGTH_SHORT).show()
+				removeSavedData()
 			} catch (t: Throwable) {
 				t.printStackTrace()
 			}

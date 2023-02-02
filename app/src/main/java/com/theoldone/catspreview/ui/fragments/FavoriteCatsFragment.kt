@@ -49,6 +49,11 @@ class FavoriteCatsFragment : BaseFragment<FragmentFavoriteCatsBinding>(R.layout.
 		viewModel.catViewModelToSave = catViewModel
 	}
 
+	override fun removeSavedData() {
+		viewModel.drawableToSave = null
+		viewModel.catViewModelToSave = null
+	}
+
 	override fun updateDownloadingProgress(catViewModel: CatViewModel, isDownloading: Boolean) {
 		viewModel.updateDownloadProgress(catViewModel, isDownloading)
 	}
