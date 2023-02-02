@@ -19,7 +19,6 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
 import com.theoldone.catspreview.R
 import com.theoldone.catspreview.databinding.FragmentCatsBinding
-import com.theoldone.catspreview.db.models.CatDBModel
 import com.theoldone.catspreview.ui.adapters.CatsAdapter
 import com.theoldone.catspreview.ui.adapters.holders.ImageProvider
 import com.theoldone.catspreview.ui.decorations.MarginDecoration
@@ -34,7 +33,7 @@ import com.theoldone.catspreview.utils.setOnSingleTap
 import com.theoldone.catspreview.vm.CatsVM
 import javax.inject.Inject
 
-class CatsFragment : BaseFragment<FragmentCatsBinding>(R.layout.fragment_cats), FavoritesConsumer {
+class CatsFragment : BaseFragment<FragmentCatsBinding>(R.layout.fragment_cats) {
 
 	@Inject
 	lateinit var viewModelProviderFactory: ViewModelProvider.Factory
@@ -58,16 +57,11 @@ class CatsFragment : BaseFragment<FragmentCatsBinding>(R.layout.fragment_cats), 
 		binding.rvCats.addItemDecoration(MarginDecoration(middleIndentPx = 10.dp))
 		listener = binding.rvCats.onLastItemCallback(viewModel::loadNextPage)
 		binding.btnFavorites.setOnSingleTap { onFavoriteClick() }
-		updateFavorites((activity as? FavoritesProvider)?.favorites ?: emptyList())
 	}
 
 	override fun onDestroyView() {
 		super.onDestroyView()
 		listener?.let { binding.rvCats.removeOnChildAttachStateChangeListener(it) }
-	}
-
-	override fun updateFavorites(favoriteCats: List<CatDBModel>) {
-		viewModel.updateFavorites(favoriteCats.map { it.id })
 	}
 
 	override fun provideDrawable(catViewModel: CatViewModel): Drawable? {

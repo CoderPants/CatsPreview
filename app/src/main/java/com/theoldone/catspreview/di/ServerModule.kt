@@ -3,6 +3,7 @@ package com.theoldone.catspreview.di
 import com.theoldone.catspreview.di.qualifiers.ApiKey
 import com.theoldone.catspreview.di.qualifiers.AuthInterceptor
 import com.theoldone.catspreview.di.qualifiers.Host
+import com.theoldone.catspreview.server.CatsApi
 import dagger.Module
 import dagger.Provides
 import okhttp3.Interceptor
@@ -41,4 +42,7 @@ class ServerModule {
 		.client(client)
 		.addConverterFactory(GsonConverterFactory.create())
 		.build()
+
+	@Provides
+	fun provideCatsApi(retrofit: Retrofit): CatsApi = retrofit.create(CatsApi::class.java)
 }

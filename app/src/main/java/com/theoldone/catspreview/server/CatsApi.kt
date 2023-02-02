@@ -15,6 +15,6 @@ interface CatsApi {
 	): List<CatServerModel>
 
 	companion object {
-		private const val CATS_PER_PAGE = 12
+		const val CATS_PER_PAGE = 12
 	}
 }

@@ -2,8 +2,7 @@ package com.theoldone.catspreview.vm
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.theoldone.catspreview.db.FavoriteCatsDao
-import com.theoldone.catspreview.server.CatsApi
+import com.theoldone.catspreview.repositories.CatsRepository
 import com.theoldone.catspreview.server.models.toViewModel
 import com.theoldone.catspreview.ui.screenstates.FavoriteAnimation
 import com.theoldone.catspreview.ui.screenstates.InitCats
@@ -25,13 +24,9 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class CatsVM @Inject constructor(
-	//todo repository
-	private val catsApi: CatsApi,
-	private val favoriteCatsDao: FavoriteCatsDao,
+	private val repository: CatsRepository,
 	private val settings: Settings
 ) : ViewModel() {
-
-	val uiState by lazy { merge(initFlow, updateFavoritesFlow, progressFlow.asOneExecutionStrategy()) }
 	private val initFlow = MutableSharedFlow<InitCats>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 	private val progressFlow = MutableSharedFlow<UpdateProgress>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 	private val updateFavoritesFlow = MutableSharedFlow<FavoriteAnimation>()
@@ -40,12 +35,34 @@ class CatsVM @Inject constructor(
 	private var loadNextPageJob: Job? = null
 	private var currentPage = 0
 	private var favoritesIds = listOf<String>()
+	val uiState by lazy { merge(initFlow, updateFavoritesFlow, progressFlow.asOneExecutionStrategy()) }
 
 	init {
 		viewModelScope.launchMain {
 			progressFlow.emit(UpdateProgress(showProgress = true))
 			loadCats()
+			subscribeToFavorites()
 		}
+	}
+
+	private suspend fun subscribeToFavorites() {
+		repository.favoriteCatsFlow.collect { list ->
+			updateFavorites(list.map { it.id })
+		}
+	}
+
+	private fun updateFavorites(favoritesCatIds: List<String>) {
+		favoritesIds = favoritesCatIds
+		if (!settings.favoriteAnimPlayed && favoritesCatIds.isNotEmpty()) {
+			settings.favoriteAnimPlayed = true
+			settings.save()
+			viewModelScope.launchMain { updateFavoritesFlow.emit(FavoriteAnimation) }
+		}
+		if (catViewModels.isEmpty())
+			return
+
+		catViewModels.forEach { catViewModel -> catViewModel.isFavorite = favoritesCatIds.any { catViewModel.id == it } }
+		viewModelScope.launchMain { initFlow.emit(InitCats(catViewModelsCopy)) }
 	}
 
 	private suspend fun loadCats() {
@@ -55,7 +72,7 @@ class CatsVM @Inject constructor(
 
 	private suspend fun loadCatsInternal(loadNextPage: Boolean = false) {
 		val loadedCats = try {
-			withContext(IO) { catsApi.getCats(if (loadNextPage) currentPage + 1 else currentPage) }
+			withContext(IO) { repository.getCats(if (loadNextPage) currentPage + 1 else currentPage) }
 		} catch (e: Exception) {
 			e.printStackTrace()
 			emptyList()
@@ -87,24 +104,10 @@ class CatsVM @Inject constructor(
 		catViewModel.isFavorite = !catViewModel.isFavorite
 		viewModelScope.launch(IO) {
 			if (catViewModel.isFavorite)
-				favoriteCatsDao.insertFavoriteCat(catDBModel)
+				repository.insertFavoriteCat(catDBModel)
 			else
-				favoriteCatsDao.deleteFavoriteCat(catDBModel)
+				repository.deleteFavoriteCat(catDBModel)
 		}
-		viewModelScope.launchMain { initFlow.emit(InitCats(catViewModelsCopy)) }
-	}
-
-	fun updateFavorites(favoritesCatIds: List<String>) {
-		favoritesIds = favoritesCatIds
-		if (!settings.favoriteAnimPlayed && favoritesCatIds.isNotEmpty()) {
-			settings.favoriteAnimPlayed = true
-			settings.save()
-			viewModelScope.launchMain { updateFavoritesFlow.emit(FavoriteAnimation) }
-		}
-		if (catViewModels.isEmpty())
-			return
-
-		catViewModels.forEach { catViewModel -> catViewModel.isFavorite = favoritesCatIds.any { catViewModel.id == it } }
 		viewModelScope.launchMain { initFlow.emit(InitCats(catViewModelsCopy)) }
 	}
 
