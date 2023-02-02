@@ -4,11 +4,9 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import androidx.room.TypeConverters
 import com.theoldone.catspreview.db.models.CatDBModel
 
 @Database(entities = [CatDBModel::class], version = 1)
-@TypeConverters(BreedListConverter::class)
 abstract class CatsDataBase : RoomDatabase() {
 
 	abstract fun launchDao(): FavoriteCatsDao

@@ -1,7 +1,6 @@
 package com.theoldone.catspreview.server.models
 
 import com.google.gson.annotations.SerializedName
-import com.theoldone.catspreview.db.models.CatDBModel
 import com.theoldone.catspreview.ui.viewmodels.CatViewModel
 
 data class CatServerModel(
@@ -15,5 +14,3 @@ data class CatServerModel(
 )
 
 fun CatServerModel.toViewModel(isFavorite: Boolean) = CatViewModel(id, url, imageWidth, imageHeight, isFavorite)
-
-fun CatServerModel.toDBModel() = CatDBModel(id, url, imageWidth, imageHeight, breeds.map { it.toDBModel() })

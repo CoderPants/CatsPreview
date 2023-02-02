@@ -6,6 +6,8 @@ import android.os.Bundle
 import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
+import android.view.animation.Animation
+import androidx.core.animation.doOnCancel
 import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
 import androidx.lifecycle.Lifecycle
@@ -13,14 +15,15 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
 import com.theoldone.catspreview.R
 import com.theoldone.catspreview.databinding.FragmentCatsBinding
 import com.theoldone.catspreview.db.models.CatDBModel
 import com.theoldone.catspreview.ui.adapters.CatsAdapter
 import com.theoldone.catspreview.ui.decorations.MarginDecoration
+import com.theoldone.catspreview.ui.screenstates.FavoriteAnimation
 import com.theoldone.catspreview.ui.screenstates.InitCats
 import com.theoldone.catspreview.ui.screenstates.ShowBottomProgress
-import com.theoldone.catspreview.ui.screenstates.UpdateFavoriteText
 import com.theoldone.catspreview.ui.screenstates.UpdateProgress
 import com.theoldone.catspreview.ui.viewmodels.CatViewModel
 import com.theoldone.catspreview.utils.dp
@@ -38,6 +41,7 @@ class CatsFragment : BaseFragment<FragmentCatsBinding>(R.layout.fragment_cats), 
 	override val savedDrawable: Drawable? get() = viewModel.drawableToSave
 	private val adapter by lazy { CatsAdapter(viewModel::onFavoriteClicked, this::onDownloadClicked, viewModel::loadNextPage) }
 	private var progressFadeAnimator: ValueAnimator? = null
+	private var pulsingAnimator: ValueAnimator? = null
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
@@ -48,9 +52,10 @@ class CatsFragment : BaseFragment<FragmentCatsBinding>(R.layout.fragment_cats), 
 
 	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 		super.onViewCreated(view, savedInstanceState)
+		adapter.stateRestorationPolicy = PREVENT_WHEN_EMPTY
 		binding.rvCats.adapter = adapter
 		binding.rvCats.addItemDecoration(MarginDecoration(middleIndentPx = 10.dp))
-		binding.btnFavorites.setOnSingleTap { findNavController().navigate(CatsFragmentDirections.actionCatsToFavoriteCats()) }
+		binding.btnFavorites.setOnSingleTap { onFavoriteClick() }
 		updateFavorites((activity as? FavoritesProvider)?.favorites ?: emptyList())
 	}
 
@@ -83,12 +88,30 @@ class CatsFragment : BaseFragment<FragmentCatsBinding>(R.layout.fragment_cats), 
 							binding.ivEmpty.visibility = if (state.cats.isEmpty()) VISIBLE else GONE
 							binding.tvEmpty.visibility = if (state.cats.isEmpty()) VISIBLE else GONE
 						}
-						is UpdateFavoriteText -> binding.tvFavoritesAmount.text = state.favoritesText
+						is FavoriteAnimation -> startPulsingAnim()
 						is UpdateProgress -> updateProgress(state.showProgress)
 						ShowBottomProgress -> adapter.addBottomProgress()
 					}
 				}
 		}
+	}
+
+	private fun startPulsingAnim() {
+		pulsingAnimator?.cancel()
+		pulsingAnimator = ValueAnimator.ofFloat(0.92f, 1.22f).apply {
+			addUpdateListener {
+				binding.btnFavorites.scaleX = animatedValue as Float
+				binding.btnFavorites.scaleY = animatedValue as Float
+			}
+			duration = 800
+			repeatCount = Animation.INFINITE
+			repeatMode = ValueAnimator.REVERSE
+			doOnCancel {
+				binding.btnFavorites.scaleX = 1f
+				binding.btnFavorites.scaleY = 1f
+			}
+		}
+		pulsingAnimator?.start()
 	}
 
 	private fun updateProgress(showProgress: Boolean) {
@@ -121,5 +144,10 @@ class CatsFragment : BaseFragment<FragmentCatsBinding>(R.layout.fragment_cats), 
 		}
 		if (showProgress) binding.progress.show() else binding.progress.hide()
 		progressFadeAnimator?.start()
+	}
+
+	private fun onFavoriteClick() {
+		pulsingAnimator?.cancel()
+		findNavController().navigate(CatsFragmentDirections.actionCatsToFavoriteCats())
 	}
 }

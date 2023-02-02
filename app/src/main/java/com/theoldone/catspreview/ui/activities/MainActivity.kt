@@ -18,7 +18,7 @@ import com.theoldone.catspreview.utils.launchMain
 import com.theoldone.catspreview.vm.MainVM
 import javax.inject.Inject
 
-class MainActivity : BindingActivity<ActvityMainBinding>(R.layout.actvity_main), FavoritesProvider {
+class MainActivity : BaseActivity<ActvityMainBinding>(R.layout.actvity_main), FavoritesProvider {
 
 	override val favorites: List<CatDBModel> get() = viewModel.favorites
 

@@ -1,6 +1,5 @@
 package com.theoldone.catspreview.utils
 
-import android.util.Log
 import android.view.View
 import androidx.annotation.ColorRes
 import androidx.appcompat.widget.AppCompatImageView
@@ -14,7 +13,6 @@ import com.theoldone.catspreview.R
 
 @BindingAdapter("bind:url", "bind:restrictSize", requireAll = false)
 fun setImage(view: AppCompatImageView, url: String?, restrictSize: Boolean?) {
-	Log.v("MYTAG", "setImage")
 	if (url == null)
 		return
 
