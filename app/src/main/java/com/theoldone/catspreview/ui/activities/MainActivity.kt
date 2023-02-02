@@ -19,7 +19,6 @@ import com.theoldone.catspreview.vm.MainVM
 import javax.inject.Inject
 
 class MainActivity : BaseActivity<ActvityMainBinding>(R.layout.actvity_main), FavoritesProvider {
-
 	override val favorites: List<CatDBModel> get() = viewModel.favorites
 
 	@Inject
@@ -39,6 +38,7 @@ class MainActivity : BaseActivity<ActvityMainBinding>(R.layout.actvity_main), Fa
 		observeUiState()
 	}
 
+	//For settings screen result
 	override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
 		super.onActivityResult(requestCode, resultCode, data)
 		currentFragment?.onActivityResult(requestCode, resultCode, data)

@@ -9,16 +9,8 @@
 	</style>
 
 	<style name="AppTheme" parent="BaseAppTheme">
-		<item name="colorPrimary">@color/gunmetal</item>
-		<item name="colorOnPrimary">@color/white</item>
-		<item name="colorPrimaryVariant">@color/dark_gunmetal</item>
-		<item name="colorPrimaryContainer">@color/gunmetal</item>
-		<item name="colorOnPrimaryContainer">@color/white</item>
-
-		<item name="colorSecondary">@color/american_yellow</item>
-		<item name="colorSecondaryVariant">@color/saffron</item>
-		<item name="colorOnSecondary">@color/white</item>
-		<item name="colorSecondaryContainer">@color/lemon_chiffon</item>
-		<item name="colorOnSecondaryContainer">@color/black</item>
+		<item name="colorPrimary">@color/bright_gray</item>
+		<item name="colorPrimaryDark">@color/manatee</item>
+		<item name="colorAccent">@color/han_blue</item>
 	</style>
 </resources>

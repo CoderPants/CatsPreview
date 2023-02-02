@@ -33,12 +33,12 @@ import com.theoldone.catspreview.vm.CatsVM
 import javax.inject.Inject
 
 class CatsFragment : BaseFragment<FragmentCatsBinding>(R.layout.fragment_cats), FavoritesConsumer {
+	override val savedViewModel: CatViewModel? get() = viewModel.catViewModelToSave
+	override val savedDrawable: Drawable? get() = viewModel.drawableToSave
 
 	@Inject
 	lateinit var viewModelProviderFactory: ViewModelProvider.Factory
 	lateinit var viewModel: CatsVM
-	override val savedViewModel: CatViewModel? get() = viewModel.catViewModelToSave
-	override val savedDrawable: Drawable? get() = viewModel.drawableToSave
 	private val adapter by lazy { CatsAdapter(viewModel::onFavoriteClicked, this::onDownloadClicked, viewModel::loadNextPage) }
 	private var progressFadeAnimator: ValueAnimator? = null
 	private var pulsingAnimator: ValueAnimator? = null
@@ -96,22 +96,9 @@ class CatsFragment : BaseFragment<FragmentCatsBinding>(R.layout.fragment_cats), 
 		}
 	}
 
-	private fun startPulsingAnim() {
+	private fun onFavoriteClick() {
 		pulsingAnimator?.cancel()
-		pulsingAnimator = ValueAnimator.ofFloat(0.92f, 1.22f).apply {
-			addUpdateListener {
-				binding.btnFavorites.scaleX = animatedValue as Float
-				binding.btnFavorites.scaleY = animatedValue as Float
-			}
-			duration = 800
-			repeatCount = Animation.INFINITE
-			repeatMode = ValueAnimator.REVERSE
-			doOnCancel {
-				binding.btnFavorites.scaleX = 1f
-				binding.btnFavorites.scaleY = 1f
-			}
-		}
-		pulsingAnimator?.start()
+		findNavController().navigate(CatsFragmentDirections.actionCatsToFavoriteCats())
 	}
 
 	private fun updateProgress(showProgress: Boolean) {
@@ -146,8 +133,21 @@ class CatsFragment : BaseFragment<FragmentCatsBinding>(R.layout.fragment_cats), 
 		progressFadeAnimator?.start()
 	}
 
-	private fun onFavoriteClick() {
+	private fun startPulsingAnim() {
 		pulsingAnimator?.cancel()
-		findNavController().navigate(CatsFragmentDirections.actionCatsToFavoriteCats())
+		pulsingAnimator = ValueAnimator.ofFloat(0.92f, 1.22f).apply {
+			addUpdateListener {
+				binding.btnFavorites.scaleX = animatedValue as Float
+				binding.btnFavorites.scaleY = animatedValue as Float
+			}
+			duration = 800
+			repeatCount = Animation.INFINITE
+			repeatMode = ValueAnimator.REVERSE
+			doOnCancel {
+				binding.btnFavorites.scaleX = 1f
+				binding.btnFavorites.scaleY = 1f
+			}
+		}
+		pulsingAnimator?.start()
 	}
 }
