@@ -30,10 +30,10 @@ class CatsVM @Inject constructor(private val catsApi: CatsApi, private val favor
 	val uiState by lazy { merge(initFlow, updateFavoritesFlow, progressFlow.asOneExecutionStrategy(), showBottomProgressFlow) }
 
 	//Still thinks about this
-	//Properly will be to save this into file and get it's path
-	//but i don't have enough time
+	//Properly would be to save this into file and get it's path
+	//but i don't have enough time for this
 	var drawableToSave: Drawable? = null
-	var catViewModelToUpdate: CatViewModel? = null
+	var catViewModelToSave: CatViewModel? = null
 	private val initFlow = MutableSharedFlow<InitCats>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 	private val updateFavoritesFlow = MutableSharedFlow<UpdateFavoriteText>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 	private val progressFlow = MutableSharedFlow<UpdateProgress>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)

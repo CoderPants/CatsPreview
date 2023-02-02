@@ -1,5 +1,6 @@
 package com.theoldone.catspreview.ui.fragments
 
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.view.View
 import android.view.View.GONE
@@ -13,16 +14,19 @@ import com.theoldone.catspreview.db.models.CatDBModel
 import com.theoldone.catspreview.di.main.favoriteCats.FavoriteCatsFactory
 import com.theoldone.catspreview.ui.adapters.CatsAdapter
 import com.theoldone.catspreview.ui.screenstates.InitFavorites
+import com.theoldone.catspreview.ui.viewmodels.CatViewModel
 import com.theoldone.catspreview.utils.launchMain
 import com.theoldone.catspreview.vm.FavoriteCatsVM
 import javax.inject.Inject
 
-class FavoriteCatsFragment : BindingFragment<FragmentFavoriteCatsBinding>(R.layout.fragment_favorite_cats), FavoritesConsumer {
+class FavoriteCatsFragment : BaseFragment<FragmentFavoriteCatsBinding>(R.layout.fragment_favorite_cats), FavoritesConsumer {
 
 	@Inject
 	lateinit var factory: FavoriteCatsFactory
 	lateinit var viewModel: FavoriteCatsVM
-	private val adapter by lazy { CatsAdapter(viewModel::onFavoriteClicked, viewModel::onDownloadClicked) }
+	override val savedViewModel get() = viewModel.catViewModelToSave
+	override val savedDrawable get() = viewModel.drawableToSave
+	private val adapter by lazy { CatsAdapter(viewModel::onFavoriteClicked, this::onDownloadClicked) }
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
@@ -38,6 +42,15 @@ class FavoriteCatsFragment : BindingFragment<FragmentFavoriteCatsBinding>(R.layo
 
 	override fun updateFavorites(favoriteCats: List<CatDBModel>) {
 		viewModel.updateFavorites(favoriteCats)
+	}
+
+	override fun saveData(catViewModel: CatViewModel, drawable: Drawable) {
+		viewModel.drawableToSave = drawable
+		viewModel.catViewModelToSave = catViewModel
+	}
+
+	override fun updateDownloadingProgress(catViewModel: CatViewModel, isDownloading: Boolean) {
+		viewModel.updateDownloadProgress(catViewModel, isDownloading)
 	}
 
 	private fun observeUiState() {
