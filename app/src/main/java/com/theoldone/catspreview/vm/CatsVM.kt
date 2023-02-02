@@ -1,6 +1,5 @@
 package com.theoldone.catspreview.vm
 
-import android.graphics.drawable.Drawable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.theoldone.catspreview.db.FavoriteCatsDao
@@ -31,12 +30,6 @@ class CatsVM @Inject constructor(
 ) : ViewModel() {
 
 	val uiState by lazy { merge(initFlow, updateFavoritesFlow, progressFlow.asOneExecutionStrategy(), showBottomProgressFlow) }
-
-	//Still thinks about this
-	//Properly would be to save this into file and get it's path
-	//but i don't have enough time for this
-	var drawableToSave: Drawable? = null
-	var catViewModelToSave: CatViewModel? = null
 	private val initFlow = MutableSharedFlow<InitCats>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 	private val progressFlow = MutableSharedFlow<UpdateProgress>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 	private val updateFavoritesFlow = MutableSharedFlow<FavoriteAnimation>()
@@ -110,4 +103,6 @@ class CatsVM @Inject constructor(
 		catViewModel.isDownloading = isDownloading
 		viewModelScope.launchMain { initFlow.emit(InitCats(catViewModelsCopy)) }
 	}
+
+	fun catViewModelById(viewModelId: String) = catViewModels.find { it.id == viewModelId }
 }

@@ -20,6 +20,7 @@ import com.theoldone.catspreview.R
 import com.theoldone.catspreview.databinding.FragmentCatsBinding
 import com.theoldone.catspreview.db.models.CatDBModel
 import com.theoldone.catspreview.ui.adapters.CatsAdapter
+import com.theoldone.catspreview.ui.adapters.holders.ImageProvider
 import com.theoldone.catspreview.ui.decorations.MarginDecoration
 import com.theoldone.catspreview.ui.screenstates.FavoriteAnimation
 import com.theoldone.catspreview.ui.screenstates.InitCats
@@ -33,8 +34,6 @@ import com.theoldone.catspreview.vm.CatsVM
 import javax.inject.Inject
 
 class CatsFragment : BaseFragment<FragmentCatsBinding>(R.layout.fragment_cats), FavoritesConsumer {
-	override val savedViewModel: CatViewModel? get() = viewModel.catViewModelToSave
-	override val savedDrawable: Drawable? get() = viewModel.drawableToSave
 
 	@Inject
 	lateinit var viewModelProviderFactory: ViewModelProvider.Factory
@@ -63,14 +62,10 @@ class CatsFragment : BaseFragment<FragmentCatsBinding>(R.layout.fragment_cats), 
 		viewModel.updateFavorites(favoriteCats.map { it.id })
 	}
 
-	override fun saveData(catViewModel: CatViewModel, drawable: Drawable) {
-		viewModel.drawableToSave = drawable
-		viewModel.catViewModelToSave = catViewModel
-	}
-
-	override fun removeSavedData() {
-		viewModel.drawableToSave = null
-		viewModel.catViewModelToSave = null
+	override fun provideViewModelAndDrawable(viewModelId: String): Pair<CatViewModel, Drawable?>? {
+		val catViewModel = viewModel.catViewModelById(viewModelId) ?: return null
+		val holderIndex = adapter.currentList.indexOfFirst { it.id == viewModelId }.takeIf { it >= 0 } ?: return Pair(catViewModel, null)
+		return Pair(catViewModel, (binding.rvCats.findViewHolderForAdapterPosition(holderIndex) as? ImageProvider)?.image)
 	}
 
 	override fun updateDownloadingProgress(catViewModel: CatViewModel, isDownloading: Boolean) {

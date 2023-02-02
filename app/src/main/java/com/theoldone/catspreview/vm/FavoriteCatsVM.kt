@@ -1,6 +1,5 @@
 package com.theoldone.catspreview.vm
 
-import android.graphics.drawable.Drawable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.theoldone.catspreview.db.FavoriteCatsDao
@@ -21,12 +20,6 @@ class FavoriteCatsVM(
 	private val favoriteDao: FavoriteCatsDao
 ) : ViewModel() {
 	val uiState by lazy { initFlow.asSharedFlow() }
-
-	//Still thinks about this
-	//Properly would be to save this into file and get it's path
-	//but i don't have enough time for this
-	var drawableToSave: Drawable? = null
-	var catViewModelToSave: CatViewModel? = null
 	private val initFlow = MutableSharedFlow<FavoritesScreenState>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 	private val catViewModelsCopy get() = catViewModels.map { it.copy() }
 	private var catViewModels = mutableListOf<CatViewModel>()
@@ -53,4 +46,6 @@ class FavoriteCatsVM(
 		catViewModel.isDownloading = isDownloading
 		viewModelScope.launchMain { initFlow.emit(InitFavorites(catViewModelsCopy)) }
 	}
+
+	fun catViewModelById(viewModelId: String) = catViewModels.find { it.id == viewModelId }
 }

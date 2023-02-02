@@ -6,6 +6,7 @@ import com.theoldone.catspreview.R
 import com.theoldone.catspreview.databinding.HolderCatBinding
 import com.theoldone.catspreview.ui.viewmodels.CatViewModel
 import com.theoldone.catspreview.utils.*
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 
@@ -13,7 +14,9 @@ class CatHolder(
 	parent: ViewGroup,
 	private val onFavoriteClicked: (catId: String) -> Unit,
 	private val onDownloadClicked: (CatViewModel, Drawable) -> Unit,
-) : BindingHolder<HolderCatBinding>(parent, R.layout.holder_cat) {
+) : BindingHolder<HolderCatBinding>(parent, R.layout.holder_cat), ImageProvider {
+
+	override val image: Drawable get() = binding.ivCat.drawable
 
 	private val viewModel get() = item as CatViewModel
 
@@ -44,6 +47,7 @@ class CatHolder(
 		binding.executePendingBindings()
 	}
 
+	@OptIn(DelicateCoroutinesApi::class)
 	private fun updateProgress() {
 		val update: () -> Unit = {
 			setVisibility(binding.btnDownload, viewModel.hasDownload)

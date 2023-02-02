@@ -8,13 +8,13 @@ import com.theoldone.catspreview.ui.screenstates.MainScreenState
 import com.theoldone.catspreview.ui.screenstates.UpdateFavorites
 import com.theoldone.catspreview.utils.launchMain
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 
 class MainVM @Inject constructor(favoriteCatsDao: FavoriteCatsDao) : ViewModel() {
-	private val _uiState = MutableStateFlow<MainScreenState?>(null)
+	private val _uiState = MutableSharedFlow<MainScreenState>()
 	val uiState = _uiState.asSharedFlow()
 	var favorites: List<CatDBModel> = listOf()
 

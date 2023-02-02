@@ -8,13 +8,13 @@ import android.view.View.VISIBLE
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
 import com.theoldone.catspreview.R
 import com.theoldone.catspreview.databinding.FragmentFavoriteCatsBinding
 import com.theoldone.catspreview.db.models.CatDBModel
 import com.theoldone.catspreview.di.main.favoriteCats.FavoriteCatsFactory
 import com.theoldone.catspreview.ui.adapters.CatsAdapter
+import com.theoldone.catspreview.ui.adapters.holders.ImageProvider
 import com.theoldone.catspreview.ui.decorations.MarginDecoration
 import com.theoldone.catspreview.ui.screenstates.InitFavorites
 import com.theoldone.catspreview.ui.viewmodels.CatViewModel
@@ -28,8 +28,6 @@ class FavoriteCatsFragment : BaseFragment<FragmentFavoriteCatsBinding>(R.layout.
 	@Inject
 	lateinit var factory: FavoriteCatsFactory
 	lateinit var viewModel: FavoriteCatsVM
-	override val savedViewModel get() = viewModel.catViewModelToSave
-	override val savedDrawable get() = viewModel.drawableToSave
 	private val adapter by lazy { CatsAdapter(viewModel::onFavoriteClicked, this::onDownloadClicked) }
 
 	override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,18 +48,14 @@ class FavoriteCatsFragment : BaseFragment<FragmentFavoriteCatsBinding>(R.layout.
 		viewModel.updateFavorites(favoriteCats)
 	}
 
-	override fun saveData(catViewModel: CatViewModel, drawable: Drawable) {
-		viewModel.drawableToSave = drawable
-		viewModel.catViewModelToSave = catViewModel
-	}
-
-	override fun removeSavedData() {
-		viewModel.drawableToSave = null
-		viewModel.catViewModelToSave = null
-	}
-
 	override fun updateDownloadingProgress(catViewModel: CatViewModel, isDownloading: Boolean) {
 		viewModel.updateDownloadProgress(catViewModel, isDownloading)
+	}
+
+	override fun provideViewModelAndDrawable(viewModelId: String): Pair<CatViewModel, Drawable?>? {
+		val catViewModel = viewModel.catViewModelById(viewModelId) ?: return null
+		val holderIndex = adapter.currentList.indexOfFirst { it.id == viewModelId }.takeIf { it >= 0 } ?: return Pair(catViewModel, null)
+		return Pair(catViewModel, (binding.rvFavoriteCats.findViewHolderForAdapterPosition(holderIndex) as? ImageProvider)?.image)
 	}
 
 	private fun observeUiState() {

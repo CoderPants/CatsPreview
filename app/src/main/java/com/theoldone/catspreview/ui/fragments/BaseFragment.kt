@@ -31,9 +31,8 @@ abstract class BaseFragment<T : ViewDataBinding>(private val layoutResId: Int) :
 	@Inject
 	lateinit var settings: Settings
 	protected lateinit var binding: T
-	protected open val savedViewModel: CatViewModel? get() = null
-	protected open val savedDrawable: Drawable? get() = null
 	private val requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission(), this::handlePermissionResult)
+	private var catIdToDownload: String? = null
 
 	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, inState: Bundle?): View? {
 		binding = DataBindingUtil.inflate(inflater, layoutResId, container, false)
@@ -52,13 +51,12 @@ abstract class BaseFragment<T : ViewDataBinding>(private val layoutResId: Int) :
 	override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
 		super.onActivityResult(requestCode, resultCode, data)
 		if (requestCode == SETTINGS_REQUEST_CODE && requireContext().hasWritePermission()) {
-			saveImageToDownloads()
+			val pair = provideViewModelAndDrawable(catIdToDownload ?: return)
+			saveImageToDownloads(pair?.first ?: return, pair.second)
 		}
 	}
 
-	protected open fun saveData(catViewModel: CatViewModel, drawable: Drawable) {}
-
-	protected open fun removeSavedData() {}
+	protected open fun provideViewModelAndDrawable(viewModelId: String): Pair<CatViewModel, Drawable?>? = null
 
 	protected open fun updateDownloadingProgress(catViewModel: CatViewModel, isDownloading: Boolean) {}
 
@@ -66,12 +64,12 @@ abstract class BaseFragment<T : ViewDataBinding>(private val layoutResId: Int) :
 		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
 			when {
 				userDeclinedWritePermission(settings) -> {
-					saveData(catViewModel, drawable)
+					catIdToDownload = catViewModel.id
 					showAlert()
 				}
 				requireContext().hasWritePermission() -> saveImageToDownloads(catViewModel, drawable)
 				else -> {
-					saveData(catViewModel, drawable)
+					catIdToDownload = catViewModel.id
 					requestPermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
 				}
 			}
@@ -84,26 +82,28 @@ abstract class BaseFragment<T : ViewDataBinding>(private val layoutResId: Int) :
 		val builder = AlertDialog.Builder(requireContext())
 			.setTitle(R.string.alert_title)
 			.setMessage(R.string.alert_message)
-			.setNegativeButton(R.string.cancel, null)
-			.setPositiveButton(R.string.go_to_settings) { _, _ ->
-				requireActivity().openAppSettings(SETTINGS_REQUEST_CODE)
-			}
+			.setNegativeButton(R.string.cancel) { _, _ -> catIdToDownload = null }
+			.setPositiveButton(R.string.go_to_settings) { _, _ -> requireActivity().openAppSettings(SETTINGS_REQUEST_CODE) }
 		builder.show()
 	}
 
 	private fun handlePermissionResult(granted: Boolean) {
-		if (granted)
-			saveImageToDownloads()
+		if (granted) {
+			val pair = provideViewModelAndDrawable(catIdToDownload ?: return)
+			saveImageToDownloads(pair?.first ?: return, pair.second)
+		} else {
+			catIdToDownload = null
+		}
 	}
 
-	private fun saveImageToDownloads(catViewModel: CatViewModel? = savedViewModel, drawable: Drawable? = savedDrawable) {
-		updateDownloadingProgress(catViewModel ?: return, isDownloading = true)
-		saveImageToDownloadsInternal(catViewModel, drawable ?: return)
+	private fun saveImageToDownloads(catViewModel: CatViewModel, drawable: Drawable?) {
+		updateDownloadingProgress(catViewModel, isDownloading = true)
+		saveImageToDownloadsInternal(catViewModel, drawable)
 	}
 
 	// don't like to download image inside fragment, but glide needs context
 	@OptIn(DelicateCoroutinesApi::class)
-	private fun saveImageToDownloadsInternal(catViewModel: CatViewModel, drawable: Drawable) = GlobalScope.launch(Dispatchers.IO) {
+	private fun saveImageToDownloadsInternal(catViewModel: CatViewModel, drawable: Drawable?) = GlobalScope.launch(Dispatchers.IO) {
 		val context = requireContext().applicationContext
 		//download image of it's original size if has internet
 		val bitmap = if (hasInternetConnection(context)) {
@@ -113,15 +113,16 @@ abstract class BaseFragment<T : ViewDataBinding>(private val layoutResId: Int) :
 				.load(catViewModel.url)
 				.awaitImage()
 		} else {
-			drawable.toBitmap()
+			drawable?.toBitmap() ?: return@launch
 		}
+
 		val isSuccess = saveToDownloads(context, bitmap)
 		launchMain {
 			//"try catch" for case, when context would be cleared by system
 			try {
 				updateDownloadingProgress(catViewModel, isDownloading = false)
 				Toast.makeText(context, if (isSuccess) R.string.file_saved_to_downloads else R.string.saving_error, Toast.LENGTH_SHORT).show()
-				removeSavedData()
+				catIdToDownload = null
 			} catch (t: Throwable) {
 				t.printStackTrace()
 			}
