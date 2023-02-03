@@ -12,7 +12,9 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Build
+import android.os.Bundle
 import android.os.Environment
+import android.os.Parcelable
 import android.provider.MediaStore
 import android.view.View
 import androidx.annotation.RequiresApi
@@ -165,4 +167,9 @@ suspend fun RequestBuilder<Bitmap>.awaitImage() = suspendCancellableCoroutine {
 			//nothing
 		}
 	})
+}
+
+inline fun <reified T : Parcelable> Bundle?.getParcelableCompat(key: String) = when {
+	Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> this?.getParcelable(key, T::class.java)
+	else -> @Suppress("DEPRECATION") this?.getParcelable(key) as? T
 }

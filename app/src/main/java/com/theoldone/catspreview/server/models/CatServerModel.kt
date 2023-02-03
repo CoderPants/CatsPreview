@@ -10,7 +10,6 @@ data class CatServerModel(
 	val imageWidth: Int = 0,
 	@SerializedName("height")
 	val imageHeight: Int = 0,
-	val breeds: List<BreedServerModel>
 )
 
 fun CatServerModel.toViewModel(isFavorite: Boolean) = CatViewModel(id, url, imageWidth, imageHeight, isFavorite)

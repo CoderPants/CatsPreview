@@ -41,10 +41,16 @@ abstract class BaseFragment<T : ViewDataBinding>(private val layoutResId: Int) :
 
 	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 		super.onViewCreated(view, savedInstanceState)
+		savedCatViewModel = savedInstanceState?.getParcelableCompat(KEY_VIEW_MODEL)
 		binding.root.findViewById<Toolbar>(R.id.toolbar)?.setNavigationOnClickListener {
 			if (activity?.isFinishing == false)
 				activity?.onBackPressedDispatcher?.onBackPressed()
 		}
+	}
+
+	override fun onSaveInstanceState(outState: Bundle) {
+		super.onSaveInstanceState(outState)
+		outState.putParcelable(KEY_VIEW_MODEL, savedCatViewModel)
 	}
 
 	protected open fun provideDrawable(catViewModel: CatViewModel): Drawable? = null
@@ -125,5 +131,9 @@ abstract class BaseFragment<T : ViewDataBinding>(private val layoutResId: Int) :
 				t.printStackTrace()
 			}
 		}
+	}
+
+	companion object {
+		private const val KEY_VIEW_MODEL = "com.theoldone.catspreview.ui.fragments.KEY_VIEW_MODEL"
 	}
 }
