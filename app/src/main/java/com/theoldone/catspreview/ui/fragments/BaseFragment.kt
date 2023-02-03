@@ -121,45 +121,57 @@ abstract class BaseFragment<T : ViewDataBinding>(private val layoutResId: Int) :
 		if (!hasInternetConnection(context)) {
 			val isSuccess = saveToDownloads(context, drawable?.toBitmap() ?: return@launch)
 
-			launchMain {
-				//"try catch" for case, when context would be cleared by system
-				try {
-					updateDownloadingProgress(catViewModel, isDownloading = false)
-					Toast.makeText(context, if (isSuccess) R.string.file_saved_to_downloads else R.string.saving_error, Toast.LENGTH_SHORT).show()
-					savedCatViewModel = null
-				} catch (t: Throwable) {
-					t.printStackTrace()
-				}
-			}
+			launchMain { updateUiSafe(catViewModel, isSuccess) }
 		} else {
 			//download image of it's original size if has internet
 			loadImageByUrl(catViewModel.url)
 		}
 	}
 
-	private fun loadImageByUrl(url: String) {
-		val manager = requireContext().applicationContext.getSystemService<DownloadManager>() ?: return
-
-		val request = DownloadManager.Request(Uri.parse(url))
-			.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "Cat")
-			.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)// Visibility of the download Notification
-			.setTitle("Downloading cat picture")// Title of the Download Notification
-			.setDescription("Downloading")// Description of the Download Notification
-			.setMimeType("image/jpeg")
-			.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI or DownloadManager.Request.NETWORK_MOBILE)
-			.setAllowedOverRoaming(false)
-		downloadIds.add(manager.enqueue(request))
+	private fun updateUiSafe(catViewModel: CatViewModel, showSuccessToast: Boolean) {
+		//"try catch" for case, when context would be cleared by system
+		try {
+			updateDownloadingProgress(catViewModel, isDownloading = false)
+			Toast.makeText(context, if (showSuccessToast) R.string.file_saved_to_downloads else R.string.saving_error, Toast.LENGTH_SHORT).show()
+			savedCatViewModel = null
+		} catch (t: Throwable) {
+			t.printStackTrace()
+		}
 	}
 
+	private suspend fun loadImageByUrl(url: String) {
+		val context = requireContext().applicationContext
+		val manager = context.getSystemService<DownloadManager>() ?: return
+
+		val request = DownloadManager.Request(Uri.parse(url))
+			.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, context.getString(R.string.cat))
+			.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+			.setTitle(context.getString(R.string.app_name))
+			.setDescription(context.getString(R.string.downloading))
+			.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI or DownloadManager.Request.NETWORK_MOBILE)
+			.setAllowedOverRoaming(false)
+		val id = manager.enqueue(request)
+		downloadIds.add(id)
+		listenToDownloadManagerStatus(manager, id, this::handleOnFailure)
+	}
+
+	@OptIn(DelicateCoroutinesApi::class)
 	private fun handleBroadCastReceiver(intent: Intent?) {
 		if (intent?.action != DownloadManager.ACTION_DOWNLOAD_COMPLETE)
 			return
 
 		val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
 		if (downloadIds.contains(id)) {
-			updateDownloadingProgress(savedCatViewModel ?: return, isDownloading = false)
-			savedCatViewModel = null
+			savedCatViewModel?.let { viewModel -> GlobalScope.launchMain { updateUiSafe(viewModel, showSuccessToast = true) } }
 			downloadIds.remove(id)
+		}
+	}
+
+	@OptIn(DelicateCoroutinesApi::class)
+	private fun handleOnFailure(downloadId: Long) {
+		if (downloadIds.contains(downloadId)) {
+			savedCatViewModel?.let { viewModel -> GlobalScope.launchMain { updateUiSafe(viewModel, showSuccessToast = false) } }
+			downloadIds.remove(downloadId)
 		}
 	}
 

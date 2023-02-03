@@ -1,6 +1,7 @@
 package com.theoldone.catspreview.utils
 
 import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+import android.app.DownloadManager
 import android.content.*
 import android.content.res.Resources
 import android.graphics.Bitmap
@@ -25,6 +26,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.onEach
 import java.io.*
+
 
 private val contentValues: ContentValues
 	get() = ContentValues().apply {
@@ -159,4 +161,23 @@ fun BroadcastReceiver(block: (context: Context?, intent: Intent?) -> Unit) = obj
 inline fun <reified T : Parcelable> Bundle?.getParcelableCompat(key: String) = when {
 	Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> this?.getParcelable(key, T::class.java)
 	else -> @Suppress("DEPRECATION") this?.getParcelable(key) as? T
+}
+
+
+suspend fun listenToDownloadManagerStatus(downloadManager: DownloadManager, downloadID: Long, onFailure: (downloadID: Long) -> Unit) {
+	while (true) {
+		val cursor = downloadManager.query(DownloadManager.Query().setFilterById(downloadID))
+		if (cursor.moveToFirst()) {
+			val columnIndex = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS).takeIf { it >= 0 } ?: continue
+			when (cursor.getInt(columnIndex)) {
+				DownloadManager.STATUS_FAILED -> {
+					onFailure(downloadID)
+					break
+				}
+				DownloadManager.STATUS_SUCCESSFUL -> break
+			}
+		}
+		cursor.close()
+		delay(500)
+	}
 }

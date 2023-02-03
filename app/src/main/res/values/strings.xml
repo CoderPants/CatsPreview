@@ -1,8 +1,6 @@
 <resources>
 	<string name="app_name">Cats</string>
-
-	<!--MainActivity-->
-	<string name="cats">Cats</string>
+	<string name="cat">Cat</string>
 	<string name="favorites">Favorites</string>
 	<string name="choose_cat">Choose your Cat!</string>
 	<string name="empty_holder_text">Looks like all cats are sleeping!</string>
@@ -13,8 +11,8 @@
 	<string name="alert_message">To be able to save a cat, you need to grant permission!</string>
 	<string name="cancel">Cancel</string>
 	<string name="go_to_settings">Go to settings</string>
+	<string name="downloading">Downloading</string>
 
 	<!--Utils tag-->
 	<string name="single_tap_tag">single_tap_tag</string>
-	<string name="single_group_tag">single_group_tag</string>
 </resources>
