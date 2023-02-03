@@ -1,10 +1,7 @@
 package com.theoldone.catspreview.utils
 
 import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
-import android.content.ContentResolver
-import android.content.ContentValues
-import android.content.Context
-import android.content.Intent
+import android.content.*
 import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
@@ -23,15 +20,11 @@ import androidx.core.content.PermissionChecker
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.RequestBuilder
-import com.bumptech.glide.request.target.CustomTarget
-import com.bumptech.glide.request.transition.Transition
 import com.theoldone.catspreview.R
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.onEach
 import java.io.*
-import kotlin.coroutines.resume
 
 private val contentValues: ContentValues
 	get() = ContentValues().apply {
@@ -157,16 +150,10 @@ fun hasInternetConnection(context: Context): Boolean {
 		capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)
 }
 
-suspend fun RequestBuilder<Bitmap>.awaitImage() = suspendCancellableCoroutine {
-	into(object : CustomTarget<Bitmap>() {
-		override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
-			it.resume(resource)
-		}
-
-		override fun onLoadCleared(placeholder: Drawable?) {
-			//nothing
-		}
-	})
+fun BroadcastReceiver(block: (context: Context?, intent: Intent?) -> Unit) = object : BroadcastReceiver() {
+	override fun onReceive(context: Context?, intent: Intent?) {
+		block.invoke(context, intent)
+	}
 }
 
 inline fun <reified T : Parcelable> Bundle?.getParcelableCompat(key: String) = when {

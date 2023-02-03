@@ -2,20 +2,25 @@ package com.theoldone.catspreview.ui.fragments
 
 import android.Manifest
 import android.app.AlertDialog
+import android.app.DownloadManager
+import android.content.BroadcastReceiver
+import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.Toolbar
+import androidx.core.content.getSystemService
 import androidx.core.graphics.drawable.toBitmap
 import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.theoldone.catspreview.R
 import com.theoldone.catspreview.ui.viewmodels.CatViewModel
 import com.theoldone.catspreview.utils.*
@@ -33,9 +38,13 @@ abstract class BaseFragment<T : ViewDataBinding>(private val layoutResId: Int) :
 	private val requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission(), this::handlePermissionResult)
 	private val settingsLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { handleSettingsResult() }
 	private var savedCatViewModel: CatViewModel? = null
+	private var downloadIds: MutableList<Long> = mutableListOf()
+	private var broadcastReceiver: BroadcastReceiver? = null
 
 	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, inState: Bundle?): View? {
 		binding = DataBindingUtil.inflate(inflater, layoutResId, container, false)
+		broadcastReceiver = BroadcastReceiver { _, intent -> handleBroadCastReceiver(intent) }
+		requireContext().registerReceiver(broadcastReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
 		return binding.root
 	}
 
@@ -48,6 +57,11 @@ abstract class BaseFragment<T : ViewDataBinding>(private val layoutResId: Int) :
 		}
 	}
 
+	override fun onDestroyView() {
+		super.onDestroyView()
+		requireContext().unregisterReceiver(broadcastReceiver)
+	}
+
 	override fun onSaveInstanceState(outState: Bundle) {
 		super.onSaveInstanceState(outState)
 		outState.putParcelable(KEY_VIEW_MODEL, savedCatViewModel)
@@ -58,17 +72,12 @@ abstract class BaseFragment<T : ViewDataBinding>(private val layoutResId: Int) :
 	protected open fun updateDownloadingProgress(catViewModel: CatViewModel, isDownloading: Boolean) {}
 
 	protected fun onDownloadClicked(catViewModel: CatViewModel, drawable: Drawable) {
+		savedCatViewModel = catViewModel
 		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
 			when {
-				userDeclinedWritePermission(settings) -> {
-					savedCatViewModel = catViewModel
-					showAlert()
-				}
+				userDeclinedWritePermission(settings) -> showAlert()
 				requireContext().hasWritePermission() -> saveImageToDownloads(catViewModel, drawable)
-				else -> {
-					savedCatViewModel = catViewModel
-					requestPermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-				}
+				else -> requestPermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
 			}
 		} else {
 			saveImageToDownloads(catViewModel, drawable)
@@ -105,31 +114,52 @@ abstract class BaseFragment<T : ViewDataBinding>(private val layoutResId: Int) :
 		saveImageToDownloadsInternal(catViewModel, drawable)
 	}
 
-	// don't like to download image inside fragment, but glide needs context
 	@OptIn(DelicateCoroutinesApi::class)
 	private fun saveImageToDownloadsInternal(catViewModel: CatViewModel, drawable: Drawable?) = GlobalScope.launch(Dispatchers.IO) {
 		val context = requireContext().applicationContext
-		//download image of it's original size if has internet
-		val bitmap = if (hasInternetConnection(context)) {
-			Glide.with(context)
-				.asBitmap()
-				.diskCacheStrategy(DiskCacheStrategy.NONE)
-				.load(catViewModel.url)
-				.awaitImage()
-		} else {
-			drawable?.toBitmap() ?: return@launch
-		}
+		//if no internet, save predownloaded size
+		if (!hasInternetConnection(context)) {
+			val isSuccess = saveToDownloads(context, drawable?.toBitmap() ?: return@launch)
 
-		val isSuccess = saveToDownloads(context, bitmap)
-		launchMain {
-			//"try catch" for case, when context would be cleared by system
-			try {
-				updateDownloadingProgress(catViewModel, isDownloading = false)
-				Toast.makeText(context, if (isSuccess) R.string.file_saved_to_downloads else R.string.saving_error, Toast.LENGTH_SHORT).show()
-				savedCatViewModel = null
-			} catch (t: Throwable) {
-				t.printStackTrace()
+			launchMain {
+				//"try catch" for case, when context would be cleared by system
+				try {
+					updateDownloadingProgress(catViewModel, isDownloading = false)
+					Toast.makeText(context, if (isSuccess) R.string.file_saved_to_downloads else R.string.saving_error, Toast.LENGTH_SHORT).show()
+					savedCatViewModel = null
+				} catch (t: Throwable) {
+					t.printStackTrace()
+				}
 			}
+		} else {
+			//download image of it's original size if has internet
+			loadImageByUrl(catViewModel.url)
+		}
+	}
+
+	private fun loadImageByUrl(url: String) {
+		val manager = requireContext().applicationContext.getSystemService<DownloadManager>() ?: return
+
+		val request = DownloadManager.Request(Uri.parse(url))
+			.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "Cat")
+			.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)// Visibility of the download Notification
+			.setTitle("Downloading cat picture")// Title of the Download Notification
+			.setDescription("Downloading")// Description of the Download Notification
+			.setMimeType("image/jpeg")
+			.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI or DownloadManager.Request.NETWORK_MOBILE)
+			.setAllowedOverRoaming(false)
+		downloadIds.add(manager.enqueue(request))
+	}
+
+	private fun handleBroadCastReceiver(intent: Intent?) {
+		if (intent?.action != DownloadManager.ACTION_DOWNLOAD_COMPLETE)
+			return
+
+		val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
+		if (downloadIds.contains(id)) {
+			updateDownloadingProgress(savedCatViewModel ?: return, isDownloading = false)
+			savedCatViewModel = null
+			downloadIds.remove(id)
 		}
 	}
 
